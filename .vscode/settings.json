@@ -1,0 +1,6 @@
+{
+  "codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "ruff.organizeImports": true
+}
