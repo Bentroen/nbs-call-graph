@@ -5,8 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 import math
-import os
-import shutil
 from collections import deque
 from pathlib import Path
 
@@ -35,29 +33,6 @@ def subgraph_from_root(graph: nx.DiGraph, root: str | None) -> nx.DiGraph:
         raise SystemExit(f"Unknown root node: {root}")
     nodes = nx.descendants(graph, root) | {root}
     return graph.subgraph(nodes).copy()
-
-
-def find_dot_executable() -> str | None:
-    found = shutil.which("dot")
-    if found:
-        return found
-
-    # winget/Graphviz installers often leave PATH unset in this shell.
-    candidates = [
-        Path(r"C:\Program Files\Graphviz\bin\dot.exe"),
-        Path(os.environ.get("ProgramFiles", r"C:\Program Files"))
-        / "Graphviz"
-        / "bin"
-        / "dot.exe",
-        Path(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"))
-        / "Graphviz"
-        / "bin"
-        / "dot.exe",
-    ]
-    for path in candidates:
-        if path.is_file():
-            return str(path)
-    return None
 
 
 def _node_dims(name: str, lines: int) -> tuple[float, float]:
@@ -119,15 +94,15 @@ def write_dot(graph: nx.DiGraph, path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def render_with_graphviz(dot_path: Path, out_path: Path, dot_exe: str, fmt: str) -> None:
-    import subprocess
+def render_with_graphviz(dot_path: Path, out_path: Path, fmt: str) -> None:
+    """Render via pygraphviz (wheels bundle Graphviz; no system `dot` install needed)."""
+    import pygraphviz as pgv
 
     # SVG stays full-resolution (cairo PNG downscales huge graphs).
     # PNG uses a modest DPI; Graphviz may still scale if the bitmap exceeds limits.
-    cmd = [dot_exe, f"-T{fmt}", str(dot_path), "-o", str(out_path)]
-    if fmt == "png":
-        cmd.insert(1, "-Gdpi=150")
-    subprocess.run(cmd, check=True)
+    graph = pgv.AGraph(filename=str(dot_path))
+    args = "-Gdpi=150" if fmt == "png" else ""
+    graph.draw(path=str(out_path), format=fmt, prog="dot", args=args)
 
 
 def render_png_matplotlib_fallback(graph: nx.DiGraph, png_path: Path) -> None:
@@ -894,29 +869,24 @@ def main() -> None:
         f"Wrote {dot_path} ({graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges)"
     )
 
-    dot_exe = find_dot_executable()
-    if dot_exe:
-        bin_dir = str(Path(dot_exe).parent)
-        os.environ["PATH"] = bin_dir + os.pathsep + os.environ.get("PATH", "")
-
     if not args.no_svg:
-        if dot_exe:
-            print(f"Rendering SVG with Graphviz ({dot_exe})…")
-            render_with_graphviz(dot_path, svg_path, dot_exe, "svg")
+        try:
+            print("Rendering SVG with Graphviz…")
+            render_with_graphviz(dot_path, svg_path, "svg")
             print(f"Wrote {svg_path} (preferred for zooming; no cairo size cap)")
-        else:
-            print("Graphviz `dot` not found; skipping SVG.")
+        except Exception as exc:
+            print(f"Graphviz SVG render failed; skipping SVG. ({exc})")
 
     if not args.no_png:
-        if dot_exe:
-            print(f"Rendering PNG with Graphviz ({dot_exe})…")
-            render_with_graphviz(dot_path, png_path, dot_exe, "png")
+        try:
+            print("Rendering PNG with Graphviz…")
+            render_with_graphviz(dot_path, png_path, "png")
             print(
                 f"Wrote {png_path} "
                 "(may be auto-scaled if the graph exceeds cairo bitmap limits)"
             )
-        else:
-            print("Graphviz `dot` not found; falling back to matplotlib layout.")
+        except Exception as exc:
+            print(f"Graphviz PNG render failed; falling back to matplotlib. ({exc})")
             render_png_matplotlib_fallback(graph, png_path)
             print(f"Wrote {png_path}")
 
