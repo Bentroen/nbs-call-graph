@@ -351,7 +351,32 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
       font-size: 13px; line-height: 1.35; color: #222;
       box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     }
-    #hud .title { font-weight: 700; display: block; margin-bottom: 4px; }
+    #hud .hud-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    #hud .title { font-weight: 700; flex: 1; min-width: 0; }
+    #hud #hudToggle {
+      margin: 0; padding: 2px 7px; font-size: 11px; line-height: 1.2;
+      cursor: pointer; border: 1px solid #bbb; border-radius: 4px; background: #fff;
+      flex: 0 0 auto;
+    }
+    #hudBody {
+      display: grid;
+      grid-template-rows: 1fr;
+      transition: grid-template-rows 200ms ease-in-out;
+    }
+    #hud.collapsed #hudBody { grid-template-rows: 0fr; }
+    #hudBody > .hud-body-inner {
+      overflow: hidden;
+      min-height: 0;
+      opacity: 1;
+      transition: opacity 200ms ease-in-out, margin-top 200ms ease-in-out;
+      margin-top: 4px;
+    }
+    #hud.collapsed #hudBody > .hud-body-inner {
+      opacity: 0;
+      margin-top: 0;
+    }
     #hud button {
       margin-top: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer;
       border: 1px solid #bbb; border-radius: 4px; background: #fff;
@@ -379,26 +404,33 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
 </head>
 <body>
   <div id="hud">
-    <span class="title">NBS call graph</span>
-    Node &amp; edge colors = Louvain communities; <b>edges use the caller’s color</b>.<br />
-    Size ≈ lines + fan-out. Scroll to zoom: peripheral nodes stay visible but fade.<br />
-    <b>Double-click</b> a node to isolate it with callers &amp; callees.<br />
-    Click empty space or <b>Esc</b> to leave isolation.
-    <label style="display:block;margin-top:8px;cursor:pointer;">
-      <input type="checkbox" id="showInitials" />
-      Show initials when zoomed out (e.g. <code>dwp</code>)
-    </label>
-    <label style="display:block;margin-top:4px;cursor:pointer;">
-      <input type="checkbox" id="crossOnly" />
-      Emphasize cross-community edges
-    </label>
-    <div class="slider-row">
-      <label for="fadeIntensity">Fade</label>
-      <input type="range" id="fadeIntensity" min="0" max="100" value="100" />
-      <output id="fadeIntensityOut" for="fadeIntensity">100%</output>
+    <div class="hud-header">
+      <span class="title">NBS call graph</span>
+      <button type="button" id="hudToggle" aria-expanded="true" aria-controls="hudBody" title="Collapse panel">▾</button>
     </div>
-    <div style="font-size:11px;color:#666;margin-top:2px;">0% hides faded nodes · 100% full ghost visibility</div>
-    <div><button type="button" id="clearIsolate" disabled>Show full graph</button></div>
+    <div id="hudBody">
+      <div class="hud-body-inner">
+        Node &amp; edge colors = Louvain communities; <b>edges use the caller’s color</b>.<br />
+        Size ≈ lines + fan-out. Scroll to zoom: peripheral nodes stay visible but fade.<br />
+        <b>Double-click</b> a node to isolate it with callers &amp; callees.<br />
+        Click empty space or <b>Esc</b> to leave isolation.
+        <label style="display:block;margin-top:8px;cursor:pointer;">
+          <input type="checkbox" id="showInitials" />
+          Show initials when zoomed out (e.g. <code>dwp</code>)
+        </label>
+        <label style="display:block;margin-top:4px;cursor:pointer;">
+          <input type="checkbox" id="crossOnly" />
+          Emphasize cross-community edges
+        </label>
+        <div class="slider-row">
+          <label for="fadeIntensity">Fade</label>
+          <input type="range" id="fadeIntensity" min="0" max="100" value="100" />
+          <output id="fadeIntensityOut" for="fadeIntensity">100%</output>
+        </div>
+        <div style="font-size:11px;color:#666;margin-top:2px;">0% hides faded nodes · 100% full ghost visibility</div>
+        <div><button type="button" id="clearIsolate" disabled>Show full graph</button></div>
+      </div>
+    </div>
   </div>
   <div id="tooltip"></div>
   <div id="graph"></div>
@@ -406,11 +438,20 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
     const DATA = __GRAPH_DATA__;
     const T = DATA.thresholds;
     const tooltipEl = document.getElementById("tooltip");
+    const hudEl = document.getElementById("hud");
+    const hudToggle = document.getElementById("hudToggle");
     const clearBtn = document.getElementById("clearIsolate");
     const showInitialsCb = document.getElementById("showInitials");
     const crossOnlyCb = document.getElementById("crossOnly");
     const fadeSlider = document.getElementById("fadeIntensity");
     const fadeOut = document.getElementById("fadeIntensityOut");
+
+    hudToggle.addEventListener("click", () => {
+      const collapsed = hudEl.classList.toggle("collapsed");
+      hudToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      hudToggle.title = collapsed ? "Expand panel" : "Collapse panel";
+      hudToggle.textContent = collapsed ? "▸" : "▾";
+    });
 
     function fadeIntensity() {
       return Number(fadeSlider.value) / 100;
