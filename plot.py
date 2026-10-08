@@ -368,7 +368,8 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
       font-size: 12px; line-height: 1.4; color: #222;
       box-shadow: 0 4px 14px rgba(0,0,0,0.12);
     }
-    #tooltip .name { font-weight: 700; margin-bottom: 4px; }
+    #tooltip .name { font-weight: 700; }
+    #tooltip .file { color: #555; margin-bottom: 4px; }
     #tooltip .muted { color: #555; }
   </style>
 </head>
@@ -446,13 +447,11 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
       if (!tip) return "";
       return (
         `<div class="name">${escapeHtml(tip.name)}</div>` +
-        `<div class="muted">community: ${escapeHtml(tip.community)}</div>` +
-        `<div class="muted">kind: ${escapeHtml(tip.kind)}</div>` +
-        `<div>lines: ${escapeHtml(tip.lines)}` +
-        ` &nbsp;·&nbsp; code: ${escapeHtml(tip.code_lines)}</div>` +
+        `<div class="file">${escapeHtml(tip.file)}</div>` +
+        `<div>${escapeHtml(tip.lines)} lines` +
+        ` &nbsp;·&nbsp; ${escapeHtml(tip.code_lines)} code</div>` +
         `<div>calls out: ${escapeHtml(tip.out_degree)}` +
-        ` &nbsp;/&nbsp; in: ${escapeHtml(tip.in_degree)}</div>` +
-        `<div class="muted">${escapeHtml(tip.file)}</div>`
+        ` &nbsp;/&nbsp; in: ${escapeHtml(tip.in_degree)}</div>`
       );
     }
 
