@@ -277,7 +277,7 @@ def write_interactive_html(graph: nx.DiGraph, html_path: Path) -> None:
                 },
                 "size": size,
                 "importance": importance,
-                "font": {"size": 12, "face": "Helvetica"},
+                "font": {"face": "Helvetica"},
                 "borderWidth": 3 if kind == "object_event" else 1,
             }
         )
@@ -506,14 +506,20 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
       neighborsOf[e.to].add(e.from);
     });
 
-    // Custom shape: size stays importance-driven, label is canvas-centered (no vadjust).
+    // Custom shape: blob size + label size from importance; label canvas-centered.
     let network = null;
     function renderNode({ ctx, id, x, y, style, label }) {
       const r = style.size;
-      const node = nodes.get(id);
-      const font = (node && node.font) || {};
+      const node = nodes.get(id) || {};
+      const font = node.font || {};
+      const importance = node.importance || 0;
       const scale = network ? network.getScale() : 1;
       const borderWidth = (style.borderWidth || 1) / Math.max(0.01, scale);
+      // Derive from importance here — don't rely on font.size surviving DataSet merges.
+      const showFull = Boolean(label) && label === node._label;
+      const fontSize = showFull
+        ? Math.min(22, 10 + Math.sqrt(importance))
+        : Math.min(14, 8 + Math.sqrt(importance));
       return {
         drawNode() {
           ctx.beginPath();
@@ -526,7 +532,6 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
             ctx.stroke();
           }
           if (!label) return;
-          const fontSize = font.size || 12;
           ctx.font = fontSize + "px " + (font.face || "Helvetica");
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
@@ -710,9 +715,6 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
         // When the full name would be hidden, keep a short initials cue on the blob.
         const showInitials = !showFull && inIsolate && alpha > 0.05;
         const labelText = showFull ? n._label : (showInitials ? n._initials : "");
-        const fontSize = showFull
-          ? Math.min(22, 10 + Math.sqrt(n.importance))
-          : Math.min(14, 8 + Math.sqrt(n.size));
         const bg = hexToRgba(n._bg, alpha);
         const border = hexToRgba(n._border, Math.min(1, alpha + 0.15));
         nodeUpdates.push({
@@ -733,8 +735,8 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
               : { background: bg, border: border }
           },
           borderWidth: isCenter ? 4 : (n.borderWidth || 1),
+          // Color/stroke only — font size is computed from importance in renderNode.
           font: {
-            size: fontSize,
             face: "Helvetica",
             color: hexToRgba("#1a1a1a", labelText ? Math.min(1, alpha + 0.25) : 0),
             strokeWidth: labelText ? (showFull ? 3 : 2) : 0,
