@@ -500,8 +500,9 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
         `<div class="file">${escapeHtml(tip.file)}</div>` +
         `<div>${escapeHtml(tip.lines)} lines` +
         ` (${escapeHtml(tip.code_lines)} loc)</div>` +
-        `<div>calls: ${escapeHtml(tip.out_degree)}` +
-        ` &nbsp;/&nbsp; called from: ${escapeHtml(tip.in_degree)}` +
+        `<div>calls: ${escapeHtml(tip.out_degree)} out` +
+        // ` &nbsp;/&nbsp; called from: ${escapeHtml(tip.in_degree)}` +
+        `&nbsp;/&nbsp;${escapeHtml(tip.in_degree)} in` +
         ` (${escapeHtml(tip.in_calls)}` +
         ` time${tip.in_calls === 1 ? "" : "s"})</div>`
       );
