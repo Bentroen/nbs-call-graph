@@ -239,6 +239,7 @@ def write_interactive_html(graph: nx.DiGraph, html_path: Path) -> None:
         kind = attrs.get("kind", "function")
         out_deg = graph.out_degree(name)
         in_deg = graph.in_degree(name)
+        in_calls = int(graph.in_degree(name, weight="weight"))
         # Prefer large functions that fan out to many callees.
         importance = math.sqrt(n_lines) * (1.0 + out_deg) + 0.5 * in_deg
         if kind == "object_event":
@@ -262,6 +263,7 @@ def write_interactive_html(graph: nx.DiGraph, html_path: Path) -> None:
                     "code_lines": code_lines,
                     "out_degree": out_deg,
                     "in_degree": in_deg,
+                    "in_calls": in_calls,
                     "file": attrs.get("file", "") or "",
                 },
                 # Store community under a non-vis key. vis-network's `group` field
@@ -456,8 +458,10 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
         `<div class="file">${escapeHtml(tip.file)}</div>` +
         `<div>${escapeHtml(tip.lines)} lines` +
         ` (${escapeHtml(tip.code_lines)} code)</div>` +
-        `<div>calls out: ${escapeHtml(tip.out_degree)}` +
-        ` &nbsp;/&nbsp; in: ${escapeHtml(tip.in_degree)}</div>`
+        `<div>calls: ${escapeHtml(tip.out_degree)}` +
+        ` &nbsp;/&nbsp; called from: ${escapeHtml(tip.in_degree)}` +
+        ` (${escapeHtml(tip.in_calls)}` +
+        ` time${tip.in_calls === 1 ? "" : "s"})</div>`
       );
     }
 
