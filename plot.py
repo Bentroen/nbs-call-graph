@@ -626,14 +626,15 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
         physics: {
           solver: "forceAtlas2Based",
           forceAtlas2Based: {
-            gravitationalConstant: -55,
-            centralGravity: 0.008,
+            // Milder repulsion than max avoidOverlap so communities sit a bit closer.
+            gravitationalConstant: -65,
+            centralGravity: 0.01,
             springLength: 95,
             springConstant: 0.06,
             damping: 0.45,
-            avoidOverlap: 0.7
+            avoidOverlap: 0.75
           },
-          stabilization: { iterations: 250, fit: true }
+          stabilization: { iterations: 300, fit: true }
         },
         nodes: {
           shape: "custom",
