@@ -364,7 +364,9 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
     #tooltip {
       display: none; position: fixed; z-index: 10; pointer-events: none;
       background: rgba(255,255,255,0.96); border: 1px solid #aaa;
-      border-radius: 6px; padding: 8px 10px; max-width: 360px;
+      border-radius: 6px; padding: 8px 10px;
+      width: max-content;
+      white-space: nowrap;
       font-size: 12px; line-height: 1.4; color: #222;
       box-shadow: 0 4px 14px rgba(0,0,0,0.12);
     }
@@ -879,8 +881,20 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
 
     container.addEventListener("mousemove", (ev) => {
       if (tooltipEl.style.display === "none") return;
-      tooltipEl.style.left = (ev.clientX + 14) + "px";
-      tooltipEl.style.top = (ev.clientY + 14) + "px";
+      const pad = 12;
+      const offset = 14;
+      const tw = tooltipEl.offsetWidth;
+      const th = tooltipEl.offsetHeight;
+      let left = ev.clientX + offset;
+      let top = ev.clientY + offset;
+      if (left + tw > window.innerWidth - pad) {
+        left = Math.max(pad, ev.clientX - tw - offset);
+      }
+      if (top + th > window.innerHeight - pad) {
+        top = Math.max(pad, ev.clientY - th - offset);
+      }
+      tooltipEl.style.left = left + "px";
+      tooltipEl.style.top = top + "px";
     });
   </script>
 </body>
