@@ -479,8 +479,6 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
 
     const nodes = new vis.DataSet(DATA.nodes.map(n => ({
       ...n,
-      // Keep `dot` so `size` encodes importance; circle would grow with label text.
-      shape: "dot",
       label: "",
       _label: n.label,
       _initials: n.initials || n.label,
@@ -508,8 +506,44 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
       neighborsOf[e.to].add(e.from);
     });
 
+    // Custom shape: size stays importance-driven, label is canvas-centered (no vadjust).
+    let network = null;
+    function renderNode({ ctx, id, x, y, style, label }) {
+      const r = style.size;
+      const node = nodes.get(id);
+      const font = (node && node.font) || {};
+      const scale = network ? network.getScale() : 1;
+      const borderWidth = (style.borderWidth || 1) / Math.max(0.01, scale);
+      return {
+        drawNode() {
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = style.color;
+          ctx.fill();
+          if (borderWidth > 0) {
+            ctx.lineWidth = borderWidth;
+            ctx.strokeStyle = style.borderColor;
+            ctx.stroke();
+          }
+          if (!label) return;
+          const fontSize = font.size || 12;
+          ctx.font = fontSize + "px " + (font.face || "Helvetica");
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          if (font.strokeWidth) {
+            ctx.lineWidth = font.strokeWidth;
+            ctx.strokeStyle = font.strokeColor || "#f7f5f0";
+            ctx.strokeText(label, x, y);
+          }
+          ctx.fillStyle = font.color || "#1a1a1a";
+          ctx.fillText(label, x, y);
+        },
+        nodeDimensions: { width: 2 * r, height: 2 * r }
+      };
+    }
+
     const container = document.getElementById("graph");
-    const network = new vis.Network(
+    network = new vis.Network(
       container,
       { nodes, edges },
       {
@@ -539,6 +573,8 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
           stabilization: { iterations: 250, fit: true }
         },
         nodes: {
+          shape: "custom",
+          ctxRenderer: renderNode,
           scaling: { min: 6, max: 55 },
           font: { color: "#1a1a1a", strokeWidth: 3, strokeColor: "#f7f5f0" }
         },
@@ -700,7 +736,6 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
           font: {
             size: fontSize,
             face: "Helvetica",
-            align: "center",
             color: hexToRgba("#1a1a1a", labelText ? Math.min(1, alpha + 0.25) : 0),
             strokeWidth: labelText ? (showFull ? 3 : 2) : 0,
             strokeColor: "#f7f5f0"
