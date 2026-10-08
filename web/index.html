@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NBS call graph</title>
+  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="hud">
+    <div class="hud-header">
+      <span class="title">NBS call graph</span>
+      <button type="button" id="hudToggle" aria-expanded="true" aria-controls="hudBody" title="Collapse panel">▾</button>
+    </div>
+    <div id="hudBody">
+      <div class="hud-body-inner">
+        Node &amp; edge colors = Louvain communities; <b>edges use the caller’s color</b>.<br />
+        Size ≈ lines + fan-out. Scroll to zoom: peripheral nodes stay visible but fade.<br />
+        <b>Double-click</b> a node to isolate it with callers &amp; callees.<br />
+        Click empty space or <b>Esc</b> to leave isolation.
+        <label style="display:block;margin-top:8px;cursor:pointer;">
+          <input type="checkbox" id="showInitials" />
+          Show initials when zoomed out (e.g. <code>dwp</code>)
+        </label>
+        <label style="display:block;margin-top:4px;cursor:pointer;">
+          <input type="checkbox" id="crossOnly" />
+          Emphasize cross-community edges
+        </label>
+        <div class="slider-row">
+          <label for="fadeIntensity">Fade</label>
+          <input type="range" id="fadeIntensity" min="0" max="100" value="100" />
+          <output id="fadeIntensityOut" for="fadeIntensity">100%</output>
+        </div>
+        <div style="font-size:11px;color:#666;margin-top:2px;">0% hides faded nodes · 100% full ghost visibility</div>
+        <div><button type="button" id="clearIsolate" disabled>Show full graph</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="tooltip"></div>
+  <div id="graph"></div>
+  <script src="__GRAPH_DATA_SRC__"></script>
+  <script src="script.js"></script>
+</body>
+</html>
