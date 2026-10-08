@@ -1,4 +1,4 @@
-"""Render the call graph as a large PNG (Graphviz) and interactive HTML (pyvis)."""
+"""Render the call graph as Graphviz DOT and interactive HTML."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ import argparse
 import json
 import math
 import re
-from collections import deque
 from pathlib import Path
 
 import networkx as nx
@@ -109,93 +108,6 @@ def write_dot(graph: nx.DiGraph, path: Path) -> None:
 
     lines.append("}")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
-def render_with_graphviz(dot_path: Path, out_path: Path, fmt: str) -> None:
-    """Render via pygraphviz (wheels bundle Graphviz; no system `dot` install needed)."""
-    import pygraphviz as pgv
-
-    # SVG stays full-resolution (cairo PNG downscales huge graphs).
-    # PNG uses a modest DPI; Graphviz may still scale if the bitmap exceeds limits.
-    graph = pgv.AGraph(filename=str(dot_path))
-    args = "-Gdpi=150" if fmt == "png" else ""
-    graph.draw(path=str(out_path), format=fmt, prog="dot", args=args)
-
-
-def render_png_matplotlib_fallback(graph: nx.DiGraph, png_path: Path) -> None:
-    """Layered + spring refine when Graphviz is unavailable."""
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    layers = _assign_layers(graph)
-    nx.set_node_attributes(graph, layers, "layer")
-    pos = nx.multipartite_layout(graph, subset_key="layer", align="horizontal")
-    # Stretch layers horizontally so wide ranks are less crushed.
-    for node, (x, y) in list(pos.items()):
-        pos[node] = (x * (1.0 + 0.15 * layers[node]), y)
-    pos = nx.spring_layout(graph, pos=pos, iterations=40, seed=42, weight=None, k=2.0)
-
-    sizes = [
-        min(5000, max(100, 14 * max(1, int(graph.nodes[n].get("lines", 1)))))
-        for n in graph.nodes
-    ]
-    colors = [
-        "#ffe6b3" if graph.nodes[n].get("kind") == "object_event" else "#cfe8ff"
-        for n in graph.nodes
-    ]
-
-    plt.figure(figsize=(48, 28))
-    nx.draw_networkx_nodes(graph, pos, node_size=sizes, node_color=colors, alpha=0.95)
-    nx.draw_networkx_labels(graph, pos, font_size=6)
-    nx.draw_networkx_edges(
-        graph,
-        pos,
-        arrows=True,
-        arrowsize=10,
-        width=0.5,
-        alpha=0.3,
-        node_size=sizes,
-    )
-    edge_labels = {(u, v): d.get("weight", 1) for u, v, d in graph.edges(data=True)}
-    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_size=5)
-    plt.axis("off")
-    plt.tight_layout()
-    plt.savefig(png_path, dpi=200, bbox_inches="tight")
-    plt.close()
-
-
-def _assign_layers(graph: nx.DiGraph) -> dict[str, int]:
-    roots = [
-        n
-        for n, attrs in graph.nodes(data=True)
-        if attrs.get("kind") == "object_event" or graph.in_degree(n) == 0
-    ]
-    if not roots:
-        roots = [next(iter(graph.nodes))]
-
-    layers: dict[str, int | None] = {n: None for n in graph.nodes}
-    queue: deque[str] = deque()
-    for root in roots:
-        layers[root] = 0
-        queue.append(root)
-
-    while queue:
-        node = queue.popleft()
-        assert layers[node] is not None
-        next_layer = layers[node] + 1
-        for succ in graph.successors(node):
-            if layers[succ] is None or next_layer < layers[succ]:
-                layers[succ] = next_layer
-                queue.append(succ)
-
-    max_layer = max(
-        (layer for layer in layers.values() if layer is not None), default=0
-    )
-    return {
-        n: (max_layer + 1 if layer is None else layer) for n, layer in layers.items()
-    }
 
 
 # Distinct categorical colors for Louvain communities (Wikipedia-map style).
@@ -980,16 +892,6 @@ def main() -> None:
         help="Optional root node; plot only that node and its descendants",
     )
     parser.add_argument(
-        "--no-png",
-        action="store_true",
-        help="Skip PNG rendering",
-    )
-    parser.add_argument(
-        "--no-svg",
-        action="store_true",
-        help="Skip SVG rendering (SVG is the full-resolution Graphviz export)",
-    )
-    parser.add_argument(
         "--no-html",
         action="store_true",
         help="Skip interactive HTML",
@@ -1003,35 +905,12 @@ def main() -> None:
     suffix = f"_{args.root.replace(':', '_')}" if args.root else ""
 
     dot_path = out_dir / f"call_graph{suffix}.dot"
-    png_path = out_dir / f"call_graph{suffix}.png"
-    svg_path = out_dir / f"call_graph{suffix}.svg"
     html_path = out_dir / f"call_graph{suffix}.html"
 
     write_dot(graph, dot_path)
     print(
         f"Wrote {dot_path} ({graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges)"
     )
-
-    if not args.no_svg:
-        try:
-            print("Rendering SVG with Graphviz…")
-            render_with_graphviz(dot_path, svg_path, "svg")
-            print(f"Wrote {svg_path} (preferred for zooming; no cairo size cap)")
-        except Exception as exc:
-            print(f"Graphviz SVG render failed; skipping SVG. ({exc})")
-
-    if not args.no_png:
-        try:
-            print("Rendering PNG with Graphviz…")
-            render_with_graphviz(dot_path, png_path, "png")
-            print(
-                f"Wrote {png_path} "
-                "(may be auto-scaled if the graph exceeds cairo bitmap limits)"
-            )
-        except Exception as exc:
-            print(f"Graphviz PNG render failed; falling back to matplotlib. ({exc})")
-            render_png_matplotlib_fallback(graph, png_path)
-            print(f"Wrote {png_path}")
 
     if not args.no_html:
         write_interactive_html(graph, html_path)
