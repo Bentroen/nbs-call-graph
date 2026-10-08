@@ -449,7 +449,7 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
         `<div class="name">${escapeHtml(tip.name)}</div>` +
         `<div class="file">${escapeHtml(tip.file)}</div>` +
         `<div>${escapeHtml(tip.lines)} lines` +
-        ` &nbsp;·&nbsp; ${escapeHtml(tip.code_lines)} code</div>` +
+        ` (${escapeHtml(tip.code_lines)} code)</div>` +
         `<div>calls out: ${escapeHtml(tip.out_degree)}` +
         ` &nbsp;/&nbsp; in: ${escapeHtml(tip.in_degree)}</div>`
       );
@@ -460,8 +460,8 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
       const calls = edge.value;
       const callLabel = calls === 1 ? "1 call" : `${calls} calls`;
       return (
-        `<div class="name">${escapeHtml(edge.from)} &gt; ${escapeHtml(edge.to)}: ` +
-        `${escapeHtml(callLabel)}</div>` +
+        `<div class="name">${escapeHtml(edge.from)} &gt; ${escapeHtml(edge.to)}</div>` +
+        `<div class="muted">${escapeHtml(callLabel)}</div>` +
         (edge.cross_community
           ? `<div class="muted">cross-community</div>`
           : "")
