@@ -190,8 +190,12 @@ def _assign_layers(graph: nx.DiGraph) -> dict[str, int]:
                 layers[succ] = next_layer
                 queue.append(succ)
 
-    max_layer = max((layer for layer in layers.values() if layer is not None), default=0)
-    return {n: (max_layer + 1 if layer is None else layer) for n, layer in layers.items()}
+    max_layer = max(
+        (layer for layer in layers.values() if layer is not None), default=0
+    )
+    return {
+        n: (max_layer + 1 if layer is None else layer) for n, layer in layers.items()
+    }
 
 
 # Distinct categorical colors for Louvain communities (Wikipedia-map style).
@@ -287,6 +291,7 @@ def write_interactive_html(graph: nx.DiGraph, html_path: Path) -> None:
 
     # Percentile thresholds for zoom LOD (high / mid / all).
     ranked = sorted(importances)
+
     def pct(p: float) -> float:
         if not ranked:
             return 0.0
@@ -299,9 +304,7 @@ def write_interactive_html(graph: nx.DiGraph, html_path: Path) -> None:
     }
 
     imp_by_id = {n["id"]: n["importance"] for n in nodes_payload}
-    color_by_id = {
-        n["id"]: n["color"]["background"] for n in nodes_payload
-    }
+    color_by_id = {n["id"]: n["color"]["background"] for n in nodes_payload}
     community_by_id = {n["id"]: n["community"] for n in nodes_payload}
     edges_payload = []
     for src, dst, attrs in graph.edges(data=True):
