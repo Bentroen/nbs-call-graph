@@ -1,6 +1,8 @@
 src/
 NoteBlockStudio-main/
 NoteBlockStudio/
+output/
+dist/
 
 # Python-generated files
 __pycache__/
