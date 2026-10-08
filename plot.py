@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 from collections import deque
 from pathlib import Path
 
@@ -12,6 +13,22 @@ import networkx as nx
 
 GRAPH_PATH = Path("output/call_graph.json")
 OUT_DIR = Path("output")
+
+
+def node_initials(name: str) -> str:
+    """Short label for zoomed-out view, e.g. draw_window_preferences → dwp."""
+    parts = re.split(r"[_:]+", name)
+    letters: list[str] = []
+    for part in parts:
+        if not part:
+            continue
+        # Split CamelCase / ALLCAPS runs / digits inside a segment.
+        chunks = re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+", part)
+        if len(chunks) > 1:
+            letters.extend(chunk[0].lower() for chunk in chunks if chunk)
+        else:
+            letters.append(part[0].lower())
+    return "".join(letters) if letters else name[:3].lower()
 
 
 def load_graph(path: Path) -> nx.DiGraph:
@@ -236,6 +253,7 @@ def write_interactive_html(graph: nx.DiGraph, html_path: Path) -> None:
             {
                 "id": name,
                 "label": name,
+                "initials": node_initials(name),
                 "tooltip": {
                     "name": name,
                     "community": community,
@@ -359,6 +377,7 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
     <span class="title">NBS call graph</span>
     Node &amp; edge colors = Louvain communities; <b>edges use the caller’s color</b>.<br />
     Size ≈ lines + fan-out. Scroll to zoom: peripheral nodes stay visible but fade.<br />
+    Zoomed out, nodes show initials (e.g. <code>dwp</code>); zoom in for full names.<br />
     <b>Double-click</b> a node to isolate it with callers &amp; callees.<br />
     Click empty space or <b>Esc</b> to leave isolation.
     <label style="display:block;margin-top:8px;cursor:pointer;">
@@ -461,9 +480,11 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
 
     const nodes = new vis.DataSet(DATA.nodes.map(n => ({
       ...n,
+      // Keep `dot` so `size` encodes importance; circle would grow with label text.
       shape: "dot",
       label: "",
       _label: n.label,
+      _initials: n.initials || n.label,
       _tooltip: n.tooltip,
       _bg: n.color.background,
       _border: n.color.border,
@@ -648,14 +669,20 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
         }
         nodeAlpha[n.id] = alpha;
         const interactive = !keepSet || inIsolate;
-        const showLabel = inIsolate && alpha > 0.05 && (
+        const showFull = inIsolate && alpha > 0.05 && (
           keepSet || (showLabels && n.importance >= labelFloor)
         );
+        // When the full name would be hidden, keep a short initials cue on the blob.
+        const showInitials = !showFull && inIsolate && alpha > 0.05;
+        const labelText = showFull ? n._label : (showInitials ? n._initials : "");
+        const fontSize = showFull
+          ? Math.min(22, 10 + Math.sqrt(n.importance))
+          : Math.min(14, 8 + Math.sqrt(n.size));
         const bg = hexToRgba(n._bg, alpha);
         const border = hexToRgba(n._border, Math.min(1, alpha + 0.15));
         nodeUpdates.push({
           id: n.id,
-          label: showLabel ? n._label : "",
+          label: labelText,
           hidden: false,
           opacity: alpha,
           // chosen:false + identical hover/highlight → no visual “pop” on accidental hits
@@ -672,9 +699,12 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
           },
           borderWidth: isCenter ? 4 : (n.borderWidth || 1),
           font: {
-            size: Math.min(22, 10 + Math.sqrt(n.importance)),
-            color: hexToRgba("#1a1a1a", showLabel ? 1 : 0),
-            strokeWidth: showLabel ? 3 : 0
+            size: fontSize,
+            face: "Helvetica",
+            align: "center",
+            color: hexToRgba("#1a1a1a", labelText ? Math.min(1, alpha + 0.25) : 0),
+            strokeWidth: labelText ? (showFull ? 3 : 2) : 0,
+            strokeColor: "#f7f5f0"
           }
         });
       });
