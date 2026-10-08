@@ -378,10 +378,13 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
     <span class="title">NBS call graph</span>
     Node &amp; edge colors = Louvain communities; <b>edges use the caller’s color</b>.<br />
     Size ≈ lines + fan-out. Scroll to zoom: peripheral nodes stay visible but fade.<br />
-    Zoomed out, nodes show initials (e.g. <code>dwp</code>); zoom in for full names.<br />
     <b>Double-click</b> a node to isolate it with callers &amp; callees.<br />
     Click empty space or <b>Esc</b> to leave isolation.
     <label style="display:block;margin-top:8px;cursor:pointer;">
+      <input type="checkbox" id="showInitials" />
+      Show initials when zoomed out (e.g. <code>dwp</code>)
+    </label>
+    <label style="display:block;margin-top:4px;cursor:pointer;">
       <input type="checkbox" id="crossOnly" />
       Emphasize cross-community edges
     </label>
@@ -400,6 +403,7 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
     const T = DATA.thresholds;
     const tooltipEl = document.getElementById("tooltip");
     const clearBtn = document.getElementById("clearIsolate");
+    const showInitialsCb = document.getElementById("showInitials");
     const crossOnlyCb = document.getElementById("crossOnly");
     const fadeSlider = document.getElementById("fadeIntensity");
     const fadeOut = document.getElementById("fadeIntensityOut");
@@ -664,6 +668,7 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
     }
 
     clearBtn.addEventListener("click", clearIsolate);
+    showInitialsCb.addEventListener("change", applyLod);
     crossOnlyCb.addEventListener("change", applyLod);
     document.addEventListener("keydown", (ev) => {
       if (ev.key === "Escape") clearIsolate();
@@ -712,8 +717,9 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
         const showFull = inIsolate && alpha > 0.05 && (
           keepSet || (showLabels && n.importance >= labelFloor)
         );
-        // When the full name would be hidden, keep a short initials cue on the blob.
-        const showInitials = !showFull && inIsolate && alpha > 0.05;
+        // Optional short initials cue when the full name would be hidden.
+        const showInitials = showInitialsCb.checked
+          && !showFull && inIsolate && alpha > 0.05;
         const labelText = showFull ? n._label : (showInitials ? n._initials : "");
         const bg = hexToRgba(n._bg, alpha);
         const border = hexToRgba(n._border, Math.min(1, alpha + 0.15));
