@@ -120,7 +120,7 @@ def main() -> None:
     parser.add_argument(
         "--root",
         type=Path,
-        default=Path("NoteBlockStudio-main"),
+        default=Path("NoteBlockStudio"),
         help="Project root containing .gml sources",
     )
     parser.add_argument(
