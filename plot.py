@@ -498,7 +498,7 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
         `<div class="name">${escapeHtml(tip.name)}</div>` +
         `<div class="file">${escapeHtml(tip.file)}</div>` +
         `<div>${escapeHtml(tip.lines)} lines` +
-        ` (${escapeHtml(tip.code_lines)} code)</div>` +
+        ` (${escapeHtml(tip.code_lines)} loc)</div>` +
         `<div>calls: ${escapeHtml(tip.out_degree)}` +
         ` &nbsp;/&nbsp; called from: ${escapeHtml(tip.in_degree)}` +
         ` (${escapeHtml(tip.in_calls)}` +
