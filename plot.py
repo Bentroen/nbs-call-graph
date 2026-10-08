@@ -528,16 +528,22 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
       tooltipEl.style.display = "none";
     }
 
-    const nodes = new vis.DataSet(DATA.nodes.map(n => ({
-      ...n,
-      label: "",
-      _label: n.label,
-      _initials: n.initials || n.label,
-      _tooltip: n.tooltip,
-      _bg: n.color.background,
-      _border: n.color.border,
-      opacity: 1
-    })));
+    // Largest first so they paint underneath; smaller nodes stay readable on overlap.
+    const nodes = new vis.DataSet(
+      DATA.nodes
+        .slice()
+        .sort((a, b) => (b.size || 0) - (a.size || 0))
+        .map(n => ({
+          ...n,
+          label: "",
+          _label: n.label,
+          _initials: n.initials || n.label,
+          _tooltip: n.tooltip,
+          _bg: n.color.background,
+          _border: n.color.border,
+          opacity: 1
+        }))
+    );
     const edges = new vis.DataSet(DATA.edges.map(e => ({
       ...e,
       arrows: { to: { enabled: true, scaleFactor: 0.45 } },
