@@ -248,7 +248,8 @@ def write_interactive_html(graph: nx.DiGraph, html_path: Path) -> None:
 
         community = communities.get(name, 0)
         color = _COMMUNITY_COLORS[community % len(_COMMUNITY_COLORS)]
-        size = min(55.0, max(6.0, 4.0 + math.sqrt(n_lines) * 2.2 + out_deg * 0.8))
+        size = max(6.0, 4.0 + math.sqrt(n_lines) * 2.2 + out_deg * 0.8)
+        size = min(120.0, size)
         # Structured tooltip fields — rendered as HTML in the page (vis title is plain text).
         nodes_payload.append(
             {
@@ -637,7 +638,7 @@ _INTERACTIVE_HTML_TEMPLATE = r"""<!DOCTYPE html>
         nodes: {
           shape: "custom",
           ctxRenderer: renderNode,
-          scaling: { min: 6, max: 55 },
+          scaling: { min: 6, max: 150 },
           font: { color: "#1a1a1a", strokeWidth: 3, strokeColor: "#f7f5f0" }
         },
         edges: {
