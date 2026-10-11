@@ -671,6 +671,11 @@ fnTable.tBodies[0].addEventListener("click", (event) => {
 });
 
 function setFnCollapsed(collapsed) {
+  if (!collapsed) {
+    fnPanel.classList.remove("is-tab");
+    // Restore the table before the width and opacity transitions start.
+    void fnPanel.offsetWidth;
+  }
   fnPanel.classList.toggle("collapsed", collapsed);
   document.body.classList.toggle("fn-collapsed", collapsed);
   fnToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
@@ -680,6 +685,11 @@ function setFnCollapsed(collapsed) {
   fnToggle.textContent = collapsed ? "◂" : "▸";
 }
 
+fnPanel.addEventListener("transitionend", (event) => {
+  if (event.target !== fnPanel || event.propertyName !== "width") return;
+  fnPanel.classList.toggle("is-tab", fnPanel.classList.contains("collapsed"));
+});
+
 fnToggle.addEventListener("click", () => {
   setFnCollapsed(!fnPanel.classList.contains("collapsed"));
 });
@@ -687,18 +697,22 @@ fnToggle.addEventListener("click", () => {
 renderFnRows();
 
 let graphPixels = "";
+let graphFitTimer = 0;
 function syncGraphSize() {
   if (!network) return;
   const next = `${container.clientWidth}x${container.clientHeight}`;
   if (next === graphPixels || container.clientWidth < 1) return;
   graphPixels = next;
   network.setSize(`${container.clientWidth}px`, `${container.clientHeight}px`);
-  if (isolatedId) {
+  // Refit once the sidebar width transition settles, not on every frame.
+  window.clearTimeout(graphFitTimer);
+  graphFitTimer = window.setTimeout(() => {
+    if (!isolatedId) return;
     network.fit({
       nodes: Array.from(isolatedSet(isolatedId)),
       animation: false,
     });
-  }
+  }, 220);
 }
 
 if (window.ResizeObserver) {

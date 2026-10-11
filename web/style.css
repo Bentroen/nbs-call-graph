@@ -16,6 +16,7 @@ body {
   left: 0;
   bottom: 0;
   right: var(--fn-width);
+  transition: right 200ms ease-in-out;
 }
 body.fn-collapsed #graph {
   right: var(--fn-tab);
@@ -148,11 +149,13 @@ body.fn-collapsed #graph {
   width: var(--fn-width);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.96);
   border-left: 1px solid #ccc;
   box-shadow: -2px 0 12px rgba(0, 0, 0, 0.06);
   color: #222;
   font-size: 12px;
+  transition: width 200ms ease-in-out;
 }
 #fnPanel.collapsed {
   width: var(--fn-tab);
@@ -165,11 +168,14 @@ body.fn-collapsed #graph {
   padding: 8px 10px;
   border-bottom: 1px solid #e4e4e4;
   flex: 0 0 auto;
+  overflow: hidden;
 }
 #fnPanel .title {
   font-weight: 700;
   font-size: 13px;
   min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
 }
 #fnPanel #fnToggle {
   margin: 0;
@@ -182,7 +188,7 @@ body.fn-collapsed #graph {
   background: #fff;
   flex: 0 0 auto;
 }
-#fnPanel.collapsed .fn-header {
+#fnPanel.collapsed.is-tab .fn-header {
   flex: 1;
   flex-direction: column;
   justify-content: flex-start;
@@ -191,26 +197,37 @@ body.fn-collapsed #graph {
   padding: 10px 4px;
   gap: 12px;
 }
-#fnPanel.collapsed #fnToggle {
+#fnPanel.collapsed.is-tab #fnToggle {
   order: -1;
 }
-#fnPanel.collapsed .title {
+#fnPanel.collapsed.is-tab .title {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-}
-#fnPanel.collapsed #fnBody {
-  display: none;
+  overflow: visible;
 }
 #fnBody {
+  /* Keep the open width while the panel clips, so names don't rewrap mid-collapse. */
   flex: 1;
   min-height: 0;
+  width: var(--fn-width);
+  min-width: var(--fn-width);
   display: flex;
   flex-direction: column;
+  opacity: 1;
+  transition: opacity 200ms ease-in-out;
+}
+#fnPanel.collapsed #fnBody {
+  opacity: 0;
+  pointer-events: none;
+}
+#fnPanel.collapsed.is-tab #fnBody {
+  display: none;
 }
 #fnPanel .fn-scroll {
   overflow: auto;
   flex: 1;
   min-height: 0;
+  width: 100%;
 }
 #fnTable {
   width: 100%;
