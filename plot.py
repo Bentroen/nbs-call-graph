@@ -161,6 +161,7 @@ def write_interactive_html(graph: nx.DiGraph, out_dir: Path, *, suffix: str = ""
         code_lines = int(attrs.get("code_lines", n_lines) or n_lines)
         kind = attrs.get("kind", "function")
         out_deg = graph.out_degree(name)
+        out_calls = int(graph.out_degree(name, weight="weight"))
         in_deg = graph.in_degree(name)
         in_calls = int(graph.in_degree(name, weight="weight"))
         # Prefer large functions that fan out to many callees.
@@ -186,6 +187,7 @@ def write_interactive_html(graph: nx.DiGraph, out_dir: Path, *, suffix: str = ""
                     "lines": n_lines,
                     "code_lines": code_lines,
                     "out_degree": out_deg,
+                    "out_calls": out_calls,
                     "in_degree": in_deg,
                     "in_calls": in_calls,
                     "file": attrs.get("file", "") or "",

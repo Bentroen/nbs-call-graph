@@ -67,7 +67,8 @@ function formatTooltip(tip) {
     `<div>${escapeHtml(tip.lines)} lines` +
     ` (${escapeHtml(tip.code_lines)} loc)</div>` +
     `<div>calls: ${escapeHtml(tip.out_degree)} out` +
-    // ` &nbsp;/&nbsp; called from: ${escapeHtml(tip.in_degree)}` +
+    ` (${escapeHtml(tip.out_calls)}` +
+    ` time${tip.out_calls === 1 ? "" : "s"})` +
     `&nbsp;/&nbsp;${escapeHtml(tip.in_degree)} in` +
     ` (${escapeHtml(tip.in_calls)}` +
     ` time${tip.in_calls === 1 ? "" : "s"})</div>`
