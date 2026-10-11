@@ -70,10 +70,10 @@ function formatTooltip(tip) {
     `<div class="file">${escapeHtml(tip.file)}</div>` +
     `<div>${fmtNum(tip.lines)} lines` +
     ` (${fmtNum(tip.code_lines)} loc)</div>` +
-    `<div>calls: ${fmtNum(tip.out_degree)} out` +
+    `<div>calls: ${fmtNum(tip.out_degree)}` +
     ` (${fmtNum(tip.out_calls)}` +
-    ` time${tip.out_calls === 1 ? "" : "s"})` +
-    `&nbsp;/&nbsp;${fmtNum(tip.in_degree)} in` +
+    ` time${tip.out_calls === 1 ? "" : "s"})</div>` +
+    `<div>callers: ${fmtNum(tip.in_degree)}` +
     ` (${fmtNum(tip.in_calls)}` +
     ` time${tip.in_calls === 1 ? "" : "s"})</div>`
   );
