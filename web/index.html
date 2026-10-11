@@ -18,6 +18,7 @@
         Node &amp; edge colors = Louvain communities; <b>edges use the caller’s color</b>.<br />
         Size ≈ lines + fan-out. Scroll to zoom: peripheral nodes stay visible but fade.<br />
         <b>Double-click</b> a node to isolate it with callers &amp; callees.<br />
+        Click a row in the function list to focus that node.<br />
         Click empty space or <b>Esc</b> to leave isolation.
         <label style="display:block;margin-top:8px;cursor:pointer;">
           <input type="checkbox" id="showInitials" />
@@ -39,6 +40,37 @@
   </div>
   <div id="tooltip"></div>
   <div id="graph"></div>
+  <aside id="fnPanel" aria-label="Functions">
+    <div class="fn-header">
+      <span class="title">Functions</span>
+      <button type="button" id="fnToggle" aria-expanded="true" aria-controls="fnBody" title="Collapse function list">▸</button>
+    </div>
+    <div id="fnBody">
+      <div class="fn-scroll">
+        <table id="fnTable">
+          <colgroup>
+            <col class="col-name" />
+            <col class="col-num" />
+            <col class="col-num" />
+            <col class="col-num" />
+            <col class="col-num" />
+            <col class="col-num" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col" data-key="name" aria-sort="ascending">Name</th>
+              <th scope="col" data-key="lines" class="num" title="Lines spanned by the definition">lines</th>
+              <th scope="col" data-key="loc" class="num" title="Lines of code">loc</th>
+              <th scope="col" data-key="calls" class="num" title="Distinct functions this one calls">calls</th>
+              <th scope="col" data-key="calledFrom" class="num" title="Distinct callers">called from</th>
+              <th scope="col" data-key="calledBy" class="num" title="Total incoming calls">called by</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </aside>
   <script src="__GRAPH_DATA_SRC__"></script>
   <script src="script.js"></script>
 </body>

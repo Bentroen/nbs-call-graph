@@ -191,6 +191,7 @@ def write_interactive_html(graph: nx.DiGraph, out_dir: Path, *, suffix: str = ""
                     "in_degree": in_deg,
                     "in_calls": in_calls,
                     "file": attrs.get("file", "") or "",
+                    "line": int(attrs.get("line") or 1),
                 },
                 # Store community under a non-vis key. vis-network's `group` field
                 # applies its own palette and would disagree with caller edge colors.

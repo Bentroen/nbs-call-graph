@@ -279,6 +279,8 @@ function setIsolate(id) {
     nodes: Array.from(keep),
     animation: { duration: duration, easingFunction: "easeInOutQuad" },
   });
+  network.selectNodes([id], false);
+  markActiveRow(id);
 }
 
 function clearIsolate() {
@@ -296,6 +298,8 @@ function clearIsolate() {
     });
     savedView = null;
   }
+  network.unselectAll();
+  markActiveRow(null);
 }
 
 clearBtn.addEventListener("click", clearIsolate);
@@ -446,7 +450,14 @@ function endpointVisibleBoost(nodeAlpha, e, intensity) {
 network.once("stabilizationIterationsDone", () => {
   network.setOptions({ physics: { enabled: false } });
   applyLod();
-  network.fit({ animation: false });
+  if (isolatedId) {
+    network.fit({
+      nodes: Array.from(isolatedSet(isolatedId)),
+      animation: false,
+    });
+  } else {
+    network.fit({ animation: false });
+  }
 });
 
 network.on("zoom", () => {
@@ -528,3 +539,168 @@ container.addEventListener("mousemove", (ev) => {
   tooltipEl.style.left = left + "px";
   tooltipEl.style.top = top + "px";
 });
+
+const NBS_BLOB = "https://github.com/OpenNBS/NoteBlockStudio/blob/v3.11.0/";
+
+function sourceUrl(file, line) {
+  const parts = String(file || "")
+    .split("/")
+    .filter(Boolean)
+    .map(encodeURIComponent);
+  if (!parts.length) return "";
+  const lineNo = Number(line) || 1;
+  return `${NBS_BLOB}${parts.join("/")}#L${lineNo}`;
+}
+
+const fnPanel = document.getElementById("fnPanel");
+const fnToggle = document.getElementById("fnToggle");
+const fnTable = document.getElementById("fnTable");
+
+const fnRecords = DATA.nodes
+  .filter((n) => n.tooltip && n.tooltip.file)
+  .map((n) => {
+    const tip = n.tooltip;
+    return {
+      id: n.id,
+      name: n.label || n.id,
+      file: tip.file,
+      line: tip.line || 1,
+      lines: tip.lines ?? 0,
+      loc: tip.code_lines ?? 0,
+      calls: tip.out_degree ?? 0,
+      calledFrom: tip.in_degree ?? 0,
+      calledBy: tip.in_calls ?? 0,
+      color: (n.color && n.color.background) || "#999999",
+    };
+  });
+
+let fnSortKey = "name";
+let fnSortDir = 1;
+
+function compareFnRecords(a, b) {
+  if (fnSortKey === "name") return a.name.localeCompare(b.name) * fnSortDir;
+  const diff = a[fnSortKey] - b[fnSortKey];
+  if (diff !== 0) return diff * fnSortDir;
+  return a.name.localeCompare(b.name);
+}
+
+function syncSortHeaders() {
+  fnTable.querySelectorAll("th").forEach((th) => {
+    if (th.dataset.key === fnSortKey) {
+      th.setAttribute("aria-sort", fnSortDir > 0 ? "ascending" : "descending");
+    } else {
+      th.removeAttribute("aria-sort");
+    }
+  });
+}
+
+function nameCell(rec) {
+  const td = document.createElement("td");
+  td.className = "name";
+  const href = sourceUrl(rec.file, rec.line);
+  const link = document.createElement("a");
+  link.href = href;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.title = `${rec.file}:${rec.line}`;
+  link.textContent = rec.name;
+  td.append(link);
+  return td;
+}
+
+function numCell(value) {
+  const td = document.createElement("td");
+  td.className = "num";
+  td.textContent = fmtNum(value);
+  return td;
+}
+
+function renderFnRows() {
+  const tbody = fnTable.tBodies[0];
+  const frag = document.createDocumentFragment();
+  fnRecords
+    .slice()
+    .sort(compareFnRecords)
+    .forEach((rec) => {
+      const tr = document.createElement("tr");
+      tr.dataset.id = rec.id;
+      tr.style.setProperty("--group", rec.color);
+      if (rec.id === isolatedId) tr.classList.add("active");
+      tr.append(
+        nameCell(rec),
+        numCell(rec.lines),
+        numCell(rec.loc),
+        numCell(rec.calls),
+        numCell(rec.calledFrom),
+        numCell(rec.calledBy),
+      );
+      frag.append(tr);
+    });
+  tbody.replaceChildren(frag);
+  syncSortHeaders();
+}
+
+function markActiveRow(id) {
+  if (!fnTable) return;
+  for (const tr of fnTable.tBodies[0].rows) {
+    tr.classList.toggle("active", Boolean(id) && tr.dataset.id === id);
+  }
+  if (!id || fnPanel.classList.contains("collapsed")) return;
+  const active = fnTable.querySelector("tbody tr.active");
+  if (active) active.scrollIntoView({ block: "nearest" });
+}
+
+fnTable.querySelector("thead").addEventListener("click", (event) => {
+  const th = event.target.closest("th");
+  if (!th || !th.dataset.key) return;
+  const key = th.dataset.key;
+  if (fnSortKey === key) {
+    fnSortDir *= -1;
+  } else {
+    fnSortKey = key;
+    fnSortDir = key === "name" ? 1 : -1;
+  }
+  renderFnRows();
+  markActiveRow(isolatedId);
+});
+
+fnTable.tBodies[0].addEventListener("click", (event) => {
+  const tr = event.target.closest("tr");
+  if (!tr || !tr.dataset.id) return;
+  setIsolate(tr.dataset.id);
+});
+
+function setFnCollapsed(collapsed) {
+  fnPanel.classList.toggle("collapsed", collapsed);
+  document.body.classList.toggle("fn-collapsed", collapsed);
+  fnToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  fnToggle.title = collapsed
+    ? "Expand function list"
+    : "Collapse function list";
+  fnToggle.textContent = collapsed ? "◂" : "▸";
+}
+
+fnToggle.addEventListener("click", () => {
+  setFnCollapsed(!fnPanel.classList.contains("collapsed"));
+});
+
+renderFnRows();
+
+let graphPixels = "";
+function syncGraphSize() {
+  if (!network) return;
+  const next = `${container.clientWidth}x${container.clientHeight}`;
+  if (next === graphPixels || container.clientWidth < 1) return;
+  graphPixels = next;
+  network.setSize(`${container.clientWidth}px`, `${container.clientHeight}px`);
+  if (isolatedId) {
+    network.fit({
+      nodes: Array.from(isolatedSet(isolatedId)),
+      animation: false,
+    });
+  }
+}
+
+if (window.ResizeObserver) {
+  new ResizeObserver(() => syncGraphSize()).observe(container);
+}

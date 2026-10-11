@@ -4,10 +4,21 @@ body {
   height: 100%;
   background: #f7f5f0;
   font-family: Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+:root {
+  --fn-width: clamp(540px, 46vw, 620px);
+  --fn-tab: 40px;
 }
 #graph {
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: var(--fn-width);
+}
+body.fn-collapsed #graph {
+  right: var(--fn-tab);
 }
 #hud {
   position: fixed;
@@ -103,6 +114,8 @@ body {
   position: fixed;
   z-index: 10;
   pointer-events: none;
+  flex-direction: column;
+  gap: 2px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid #aaa;
   border-radius: 6px;
@@ -126,4 +139,152 @@ body {
   gap: 2px;
   margin-top: 4px;
 }
+#fnPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  width: var(--fn-width);
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.96);
+  border-left: 1px solid #ccc;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.06);
+  color: #222;
+  font-size: 12px;
+}
+#fnPanel.collapsed {
+  width: var(--fn-tab);
+}
+#fnPanel .fn-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e4e4e4;
+  flex: 0 0 auto;
+}
+#fnPanel .title {
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 0;
+}
+#fnPanel #fnToggle {
+  margin: 0;
+  padding: 2px 7px;
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  background: #fff;
+  flex: 0 0 auto;
+}
+#fnPanel.collapsed .fn-header {
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  border-bottom: 0;
+  padding: 10px 4px;
+  gap: 12px;
+}
+#fnPanel.collapsed #fnToggle {
+  order: -1;
+}
+#fnPanel.collapsed .title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+#fnPanel.collapsed #fnBody {
+  display: none;
+}
+#fnBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#fnPanel .fn-scroll {
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+#fnTable {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+#fnTable col.col-num {
+  width: 4.8rem;
+}
+#fnTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f7f5f0;
+  text-align: left;
+  font-weight: 600;
+  padding: 6px 6px;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+  user-select: none;
+  white-space: normal;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+#fnTable th:hover {
+  background: #efece4;
+}
+#fnTable th[aria-sort="ascending"]::after {
+  content: " ▲";
+  font-size: 9px;
+}
+#fnTable th[aria-sort="descending"]::after {
+  content: " ▼";
+  font-size: 9px;
+}
+#fnTable th.num,
+#fnTable td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+#fnTable th.num {
+  padding-left: 2px;
+  padding-right: 4px;
+}
+#fnTable td {
+  padding: 4px 8px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+#fnTable td.name {
+  box-shadow: inset 4px 0 0 var(--group, #ccc);
+  word-break: break-word;
+}
+#fnTable a {
+  color: #1a4f8b;
+  text-decoration: none;
+}
+#fnTable a:hover {
+  text-decoration: underline;
+}
+#fnTable tbody tr {
+  cursor: pointer;
+}
+#fnTable tbody tr:hover td {
+  background: rgba(0, 0, 0, 0.04);
+}
+#fnTable tbody tr.active td {
+  background: color-mix(in srgb, var(--group, #4e79a7) 42%, white);
+}
+#fnTable tbody tr.active td.name {
+  font-weight: 600;
+}
+#fnTable tbody tr.active:hover td {
+  background: color-mix(in srgb, var(--group, #4e79a7) 50%, white);
 }
