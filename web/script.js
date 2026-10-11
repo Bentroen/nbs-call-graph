@@ -59,18 +59,22 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function fmtNum(n) {
+  return Number(n).toLocaleString("en-US");
+}
+
 function formatTooltip(tip) {
   if (!tip) return "";
   return (
     `<div class="name">${escapeHtml(tip.name)}</div>` +
     `<div class="file">${escapeHtml(tip.file)}</div>` +
-    `<div>${escapeHtml(tip.lines)} lines` +
-    ` (${escapeHtml(tip.code_lines)} loc)</div>` +
-    `<div>calls: ${escapeHtml(tip.out_degree)} out` +
-    ` (${escapeHtml(tip.out_calls)}` +
+    `<div>${fmtNum(tip.lines)} lines` +
+    ` (${fmtNum(tip.code_lines)} loc)</div>` +
+    `<div>calls: ${fmtNum(tip.out_degree)} out` +
+    ` (${fmtNum(tip.out_calls)}` +
     ` time${tip.out_calls === 1 ? "" : "s"})` +
-    `&nbsp;/&nbsp;${escapeHtml(tip.in_degree)} in` +
-    ` (${escapeHtml(tip.in_calls)}` +
+    `&nbsp;/&nbsp;${fmtNum(tip.in_degree)} in` +
+    ` (${fmtNum(tip.in_calls)}` +
     ` time${tip.in_calls === 1 ? "" : "s"})</div>`
   );
 }
@@ -78,7 +82,7 @@ function formatTooltip(tip) {
 function formatEdgeTooltip(edge) {
   if (!edge) return "";
   const calls = edge.value;
-  const callLabel = calls === 1 ? "1 call" : `${calls} calls`;
+  const callLabel = calls === 1 ? "1 call" : `${fmtNum(calls)} calls`;
   return (
     `<div class="name">${escapeHtml(edge.from)} &gt; ${escapeHtml(edge.to)}</div>` +
     `<div class="muted">${escapeHtml(callLabel)}</div>` +
