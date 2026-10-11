@@ -114,13 +114,16 @@ body {
   color: #222;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
-#tooltip .name {
+#tooltip .title {
   font-weight: 700;
 }
-#tooltip .file {
+#tooltip .meta {
   color: #555;
-  margin-bottom: 4px;
 }
-#tooltip .muted {
-  color: #555;
+#tooltip .stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
 }

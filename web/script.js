@@ -66,8 +66,9 @@ function fmtNum(n) {
 function formatTooltip(tip) {
   if (!tip) return "";
   return (
-    `<div class="name">${escapeHtml(tip.name)}</div>` +
-    `<div class="file">${escapeHtml(tip.file)}</div>` +
+    `<div class="title">${escapeHtml(tip.name)}</div>` +
+    `<div class="meta">${escapeHtml(tip.file)}</div>` +
+    `<div class="stats">` +
     `<div>${fmtNum(tip.lines)} lines` +
     ` (${fmtNum(tip.code_lines)} loc)</div>` +
     `<div>calls: ${fmtNum(tip.out_degree)}` +
@@ -75,7 +76,8 @@ function formatTooltip(tip) {
     ` time${tip.out_calls === 1 ? "" : "s"})</div>` +
     `<div>callers: ${fmtNum(tip.in_degree)}` +
     ` (${fmtNum(tip.in_calls)}` +
-    ` time${tip.in_calls === 1 ? "" : "s"})</div>`
+    ` time${tip.in_calls === 1 ? "" : "s"})</div>` +
+    `</div>`
   );
 }
 
@@ -84,15 +86,15 @@ function formatEdgeTooltip(edge) {
   const calls = edge.value;
   const callLabel = calls === 1 ? "1 call" : `${fmtNum(calls)} calls`;
   return (
-    `<div class="name">${escapeHtml(edge.from)} &gt; ${escapeHtml(edge.to)}</div>` +
-    `<div class="muted">${escapeHtml(callLabel)}</div>` +
-    (edge.cross_community ? `<div class="muted">cross-community</div>` : "")
+    `<div class="title">${escapeHtml(edge.from)} &gt; ${escapeHtml(edge.to)}</div>` +
+    `<div class="meta">${escapeHtml(callLabel)}</div>` +
+    (edge.cross_community ? `<div class="meta">cross-community</div>` : "")
   );
 }
 
 function showTooltip(html) {
   tooltipEl.innerHTML = html;
-  tooltipEl.style.display = "block";
+  tooltipEl.style.display = "flex";
 }
 
 function hideTooltip() {
