@@ -236,7 +236,7 @@ body.fn-collapsed #graph {
   border-spacing: 0;
 }
 #fnTable col.col-num {
-  width: 4.8rem;
+  width: 5.2rem;
 }
 #fnTable th {
   position: sticky;
