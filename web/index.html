@@ -56,26 +56,46 @@
     </div>
     <div id="hudBody">
       <div class="hud-body-inner">
-        Node &amp; edge colors = Louvain communities; <b>edges use the caller’s color</b>.<br />
-        Size ≈ lines + fan-out. Scroll to zoom: peripheral nodes stay visible but fade.<br />
-        <b>Double-click</b> a node to isolate it with callers &amp; callees.<br />
-        Click a row in the function list to focus that node.<br />
-        Click empty space or <b>Esc</b> to leave isolation.
-        <label style="display:block;margin-top:8px;cursor:pointer;">
-          <input type="checkbox" id="showInitials" />
-          Show initials when zoomed out (e.g. <code>dwp</code>)
-        </label>
-        <label style="display:block;margin-top:4px;cursor:pointer;">
-          <input type="checkbox" id="crossOnly" />
-          Emphasize cross-community edges
-        </label>
-        <div class="slider-row">
-          <label for="fadeIntensity">Fade</label>
-          <input type="range" id="fadeIntensity" min="0" max="100" value="100" />
-          <output id="fadeIntensityOut" for="fadeIntensity">100%</output>
-        </div>
-        <div class="hud-hint">0% hides faded nodes · 100% full ghost visibility</div>
-        <div><button type="button" id="clearIsolate" disabled>Show full graph</button></div>
+        <section class="hud-section">
+          <h2 class="hud-section-title">Reading the graph</h2>
+          <ul class="hud-list">
+            <li>Colors mark <b>Louvain communities</b>; edges use the <b>caller’s</b> color.</li>
+            <li>Node size reflects lines of code and how many callees it has.</li>
+            <li>Scroll to zoom — less important nodes stay visible but fade out.</li>
+          </ul>
+        </section>
+        <section class="hud-section">
+          <h2 class="hud-section-title">Focus</h2>
+          <ul class="hud-list">
+            <li><b>Double-click</b> a node to isolate it with its callers and callees.</li>
+            <li>Click a row in the function list to focus that node (click again to clear).</li>
+            <li>Click empty space or press <b>Esc</b> to return to the full graph.</li>
+          </ul>
+          <button type="button" id="clearIsolate" disabled>Show full graph</button>
+        </section>
+        <section class="hud-section">
+          <h2 class="hud-section-title">Display</h2>
+          <label class="hud-check" for="showInitials">
+            <input type="checkbox" id="showInitials" />
+            <span>
+              Show initials when zoomed out
+              <span class="hud-hint">Short labels like <code>dwp</code> instead of hiding names</span>
+            </span>
+          </label>
+          <label class="hud-check" for="crossOnly">
+            <input type="checkbox" id="crossOnly" />
+            <span>
+              Emphasize cross-community edges
+              <span class="hud-hint">Dim same-community links; keep bridges visible</span>
+            </span>
+          </label>
+          <div class="slider-row">
+            <label for="fadeIntensity">Fade</label>
+            <input type="range" id="fadeIntensity" min="0" max="100" value="100" />
+            <output id="fadeIntensityOut" for="fadeIntensity">100%</output>
+          </div>
+          <div class="hud-hint">0% hides faded nodes · 100% keeps them as ghosts</div>
+        </section>
       </div>
     </div>
   </div>
