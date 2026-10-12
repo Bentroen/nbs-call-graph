@@ -348,7 +348,8 @@ function applyLod() {
       alpha = scaleFadedAlpha(fadeForImportance(n.importance, band), intensity);
     }
     nodeAlpha[n.id] = alpha;
-    const interactive = !keepSet || inIsolate;
+    const visible = alpha > 0;
+    const interactive = visible && (!keepSet || inIsolate);
     const showFull =
       inIsolate &&
       alpha > 0.05 &&
@@ -358,11 +359,12 @@ function applyLod() {
       showInitialsCb.checked && !showFull && inIsolate && alpha > 0.05;
     const labelText = showFull ? n._label : showInitials ? n._initials : "";
     const bg = hexToRgba(n._bg, alpha);
-    const border = hexToRgba(n._border, Math.min(1, alpha + 0.15));
+    // Don't keep a residual outline when the fade slider zeros a node out.
+    const border = hexToRgba(n._border, visible ? Math.min(1, alpha + 0.15) : 0);
     nodeUpdates.push({
       id: n.id,
       label: labelText,
-      hidden: false,
+      hidden: !visible,
       opacity: alpha,
       // chosen:false + identical hover/highlight → no visual “pop” on accidental hits
       chosen: interactive,
@@ -416,10 +418,10 @@ function applyLod() {
       }
     }
     const edgeColor = hexToRgba(stroke, alpha);
-    const interactive = !keepSet || tied;
+    const interactive = alpha > 0 && (!keepSet || tied);
     edgeUpdates.push({
       id: e.id,
-      hidden: false,
+      hidden: alpha <= 0,
       chosen: interactive,
       color: {
         color: edgeColor,
