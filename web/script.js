@@ -774,6 +774,9 @@ function setFnCollapsed(collapsed) {
 fnPanel.addEventListener("transitionend", (event) => {
   if (event.target !== fnPanel || event.propertyName !== "width") return;
   fnPanel.classList.toggle("is-tab", fnPanel.classList.contains("collapsed"));
+  // Final size + redraw after the sidebar animation; setSize alone can leave a blank canvas.
+  graphPixels = "";
+  syncGraphSize();
 });
 
 fnToggle.addEventListener("click", () => {
@@ -790,6 +793,7 @@ function syncGraphSize() {
   if (next === graphPixels || container.clientWidth < 1) return;
   graphPixels = next;
   network.setSize(`${container.clientWidth}px`, `${container.clientHeight}px`);
+  network.redraw();
   // Refit once the sidebar width transition settles, not on every frame.
   window.clearTimeout(graphFitTimer);
   graphFitTimer = window.setTimeout(() => {
