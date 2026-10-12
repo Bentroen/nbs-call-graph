@@ -381,3 +381,30 @@ body.fn-collapsed #graph {
 #fnTable tbody tr.active:hover td {
   background: color-mix(in srgb, var(--group, #4e79a7) 50%, white);
 }
+
+/* Mobile: panel overlays the graph instead of shrinking it. */
+@media (max-width: 800px) {
+  :root {
+    --fn-width: calc(100vw - var(--fn-inset) * 2);
+  }
+  #graph,
+  body.fn-collapsed #graph {
+    right: 0;
+  }
+  #fnPanel .fn-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #fnTable {
+    width: max-content;
+    min-width: 100%;
+  }
+  #fnTable col.col-name {
+    width: 12rem;
+  }
+  #fnTable td.name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
