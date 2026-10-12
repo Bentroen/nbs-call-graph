@@ -329,6 +329,14 @@ body.fn-collapsed #graph {
 #fnTable tbody tr:hover td {
   background: rgba(0, 0, 0, 0.04);
 }
+#fnTable tbody tr.dimmed td {
+  opacity: 0.32;
+  filter: grayscale(0.7);
+}
+#fnTable tbody tr.dimmed:hover td {
+  opacity: 0.5;
+  background: rgba(0, 0, 0, 0.03);
+}
 #fnTable tbody tr.active td {
   background: color-mix(in srgb, var(--group, #4e79a7) 42%, white);
 }

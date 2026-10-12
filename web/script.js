@@ -644,8 +644,12 @@ function renderFnRows() {
 
 function markActiveRow(id) {
   if (!fnTable) return;
+  const keep = id ? isolatedSet(id) : null;
   for (const tr of fnTable.tBodies[0].rows) {
-    tr.classList.toggle("active", Boolean(id) && tr.dataset.id === id);
+    const rowId = tr.dataset.id;
+    tr.classList.toggle("active", Boolean(id) && rowId === id);
+    // Match graph focus: ghost rows outside the ego neighborhood.
+    tr.classList.toggle("dimmed", Boolean(keep) && !keep.has(rowId));
   }
   if (!id || fnPanel.classList.contains("collapsed")) return;
   const active = fnTable.querySelector("tbody tr.active");
