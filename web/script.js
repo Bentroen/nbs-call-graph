@@ -71,7 +71,7 @@ function formatTooltip(tip) {
     `<div class="stats">` +
     `<div>${fmtNum(tip.lines)} lines` +
     ` (${fmtNum(tip.code_lines)} loc)</div>` +
-    `<div>calls: ${fmtNum(tip.out_degree)}` +
+    `<div>callees: ${fmtNum(tip.out_degree)}` +
     ` (${fmtNum(tip.out_calls)}` +
     ` time${tip.out_calls === 1 ? "" : "s"})</div>` +
     `<div>callers: ${fmtNum(tip.in_degree)}` +
@@ -567,7 +567,7 @@ const fnRecords = DATA.nodes
       line: tip.line || 1,
       lines: tip.lines ?? 0,
       loc: tip.code_lines ?? 0,
-      calls: tip.out_degree ?? 0,
+      callees: tip.out_degree ?? 0,
       times: tip.out_calls ?? 0,
       callers: tip.in_degree ?? 0,
       called: tip.in_calls ?? 0,
@@ -631,7 +631,7 @@ function renderFnRows() {
         nameCell(rec),
         numCell(rec.lines),
         numCell(rec.loc),
-        numCell(rec.calls),
+        numCell(rec.callees),
         numCell(rec.times),
         numCell(rec.callers),
         numCell(rec.called),
