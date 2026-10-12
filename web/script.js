@@ -687,6 +687,17 @@ function renderFnRows() {
   syncSortHeaders();
 }
 
+function scrollActiveRowIntoView(force) {
+  if (!isolatedId || fnPanel.classList.contains("collapsed")) return;
+  const active = fnTable.querySelector("tbody tr.active");
+  if (!active) return;
+  // force: center after expand so a row off-screen is brought into view
+  active.scrollIntoView({
+    block: force ? "center" : "nearest",
+    inline: "nearest",
+  });
+}
+
 function markActiveRow(id) {
   if (!fnTable) return;
   const keep = id ? isolatedSet(id) : null;
@@ -696,9 +707,7 @@ function markActiveRow(id) {
     // Match graph focus: ghost rows outside the ego neighborhood.
     tr.classList.toggle("dimmed", Boolean(keep) && !keep.has(rowId));
   }
-  if (!id || fnPanel.classList.contains("collapsed")) return;
-  const active = fnTable.querySelector("tbody tr.active");
-  if (active) active.scrollIntoView({ block: "nearest" });
+  scrollActiveRowIntoView(false);
 }
 
 const groupByCommunityCb = document.getElementById("groupByCommunity");
@@ -769,6 +778,10 @@ function setFnCollapsed(collapsed) {
     ? "Expand function list"
     : "Collapse function list";
   fnToggle.textContent = collapsed ? "◂" : "▸";
+  if (!collapsed) {
+    // Scroll after layout so the focused row is on screen when reopening.
+    requestAnimationFrame(() => scrollActiveRowIntoView(true));
+  }
 }
 
 fnPanel.addEventListener("transitionend", (event) => {
@@ -777,6 +790,9 @@ fnPanel.addEventListener("transitionend", (event) => {
   // Final size + redraw after the sidebar animation; setSize alone can leave a blank canvas.
   graphPixels = "";
   syncGraphSize();
+  if (!fnPanel.classList.contains("collapsed")) {
+    scrollActiveRowIntoView(true);
+  }
 });
 
 fnToggle.addEventListener("click", () => {
