@@ -163,7 +163,6 @@ body.fn-collapsed #graph {
 #fnPanel .fn-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   padding: 8px 10px;
   border-bottom: 1px solid #e4e4e4;
@@ -173,9 +172,33 @@ body.fn-collapsed #graph {
 #fnPanel .title {
   font-weight: 700;
   font-size: 13px;
-  min-width: 0;
+  line-height: 1.2;
+  flex: 0 0 auto;
   white-space: nowrap;
-  overflow: hidden;
+}
+#fnPanel .fn-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 0 24px;
+  margin-right: auto;
+  padding: 0;
+  border: 0;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.2;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  min-width: 0;
+}
+#fnPanel .fn-option input {
+  margin: 0;
+  padding: 0;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  vertical-align: middle;
 }
 #fnPanel #fnToggle {
   margin: 0;
@@ -188,12 +211,17 @@ body.fn-collapsed #graph {
   background: #fff;
   flex: 0 0 auto;
 }
+#fnPanel.collapsed .fn-header {
+  border-bottom: 0;
+}
+#fnPanel.collapsed .fn-option {
+  display: none;
+}
 #fnPanel.collapsed.is-tab .fn-header {
   flex: 1;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  border-bottom: 0;
   padding: 10px 4px;
   gap: 12px;
 }
@@ -325,6 +353,9 @@ body.fn-collapsed #graph {
 }
 #fnTable tbody tr {
   cursor: pointer;
+}
+#fnTable tbody tr.community-start td {
+  border-top: 2px solid #c8c2b6;
 }
 #fnTable tbody tr:hover td {
   background: rgba(0, 0, 0, 0.04);

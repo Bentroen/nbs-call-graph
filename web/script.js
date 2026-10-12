@@ -571,18 +571,54 @@ const fnRecords = DATA.nodes
       outCalls: tip.out_calls ?? 0,
       callers: tip.in_degree ?? 0,
       inCalls: tip.in_calls ?? 0,
+      community: n.community ?? 0,
       color: (n.color && n.color.background) || "#999999",
     };
   });
 
 let fnSortKey = "name";
 let fnSortDir = 1;
+let groupByCommunity = false;
+let communityRank = null;
 
-function compareFnRecords(a, b) {
+function compareFnValues(a, b) {
   if (fnSortKey === "name") return a.name.localeCompare(b.name) * fnSortDir;
   const diff = a[fnSortKey] - b[fnSortKey];
   if (diff !== 0) return diff * fnSortDir;
   return a.name.localeCompare(b.name);
+}
+
+function buildCommunityRank() {
+  const ranks = new Map();
+  fnRecords.forEach((rec) => {
+    const prev = ranks.get(rec.community);
+    if (prev === undefined) {
+      ranks.set(rec.community, rec);
+      return;
+    }
+    // Name: extreme by direction. Numerics: always max (strong communities float on desc).
+    if (fnSortKey === "name") {
+      const cmp = rec.name.localeCompare(prev.name);
+      if (fnSortDir > 0 ? cmp < 0 : cmp > 0) ranks.set(rec.community, rec);
+    } else if (rec[fnSortKey] > prev[fnSortKey]) {
+      ranks.set(rec.community, rec);
+    }
+  });
+  const ordered = Array.from(ranks.entries()).sort((a, b) =>
+    compareFnValues(a[1], b[1]),
+  );
+  const out = new Map();
+  ordered.forEach(([community], i) => out.set(community, i));
+  return out;
+}
+
+function compareFnRecords(a, b) {
+  if (groupByCommunity && communityRank) {
+    const ra = communityRank.get(a.community) ?? 0;
+    const rb = communityRank.get(b.community) ?? 0;
+    if (ra !== rb) return ra - rb;
+  }
+  return compareFnValues(a, b);
 }
 
 function syncSortHeaders() {
@@ -619,14 +655,21 @@ function numCell(value) {
 function renderFnRows() {
   const tbody = fnTable.tBodies[0];
   const frag = document.createDocumentFragment();
+  communityRank = groupByCommunity ? buildCommunityRank() : null;
+  let prevCommunity = null;
   fnRecords
     .slice()
     .sort(compareFnRecords)
     .forEach((rec) => {
       const tr = document.createElement("tr");
       tr.dataset.id = rec.id;
+      tr.dataset.community = String(rec.community);
       tr.style.setProperty("--group", rec.color);
       if (rec.id === isolatedId) tr.classList.add("active");
+      if (groupByCommunity && prevCommunity !== null && rec.community !== prevCommunity) {
+        tr.classList.add("community-start");
+      }
+      prevCommunity = rec.community;
       tr.append(
         nameCell(rec),
         numCell(rec.lines),
@@ -655,6 +698,13 @@ function markActiveRow(id) {
   const active = fnTable.querySelector("tbody tr.active");
   if (active) active.scrollIntoView({ block: "nearest" });
 }
+
+const groupByCommunityCb = document.getElementById("groupByCommunity");
+groupByCommunityCb.addEventListener("change", () => {
+  groupByCommunity = groupByCommunityCb.checked;
+  renderFnRows();
+  markActiveRow(isolatedId);
+});
 
 fnTable.querySelector("thead").addEventListener("click", (event) => {
   const th = event.target.closest("th");
