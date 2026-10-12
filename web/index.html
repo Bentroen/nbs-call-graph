@@ -7,10 +7,11 @@
   <script>
     (function () {
       try {
-        var stored = localStorage.getItem("darkMode");
+        var prefs = JSON.parse(localStorage.getItem("nbsCallGraphPrefs") || "{}");
+        var stored = prefs.darkMode;
         var dark =
-          stored === "true" ||
-          (stored !== "false" &&
+          stored === true ||
+          (stored !== false &&
             window.matchMedia("(prefers-color-scheme: dark)").matches);
         if (dark) document.documentElement.classList.add("dark");
       } catch (e) {}
@@ -19,8 +20,8 @@
   <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div id="hud">
+<body class="fn-collapsed">
+  <div id="hud" class="collapsed">
     <div class="hud-header">
       <span class="title">NBS call graph</span>
       <div class="hud-options">
@@ -29,7 +30,7 @@
           Dark mode
         </label>
       </div>
-      <button type="button" id="hudToggle" aria-expanded="true" aria-controls="hudBody" title="Collapse panel">▾</button>
+      <button type="button" id="hudToggle" aria-expanded="false" aria-controls="hudBody" title="Expand panel">▸</button>
     </div>
     <div id="hudBody">
       <div class="hud-body-inner">
@@ -58,7 +59,7 @@
   </div>
   <div id="tooltip"></div>
   <div id="graph"></div>
-  <aside id="fnPanel" aria-label="Functions">
+  <aside id="fnPanel" class="collapsed is-tab" aria-label="Functions">
     <div class="fn-header">
       <span class="title">Functions</span>
       <div class="fn-options">
@@ -71,7 +72,7 @@
           Show stats
         </label>
       </div>
-      <button type="button" id="fnToggle" aria-expanded="true" aria-controls="fnBody" title="Collapse function list">▸</button>
+      <button type="button" id="fnToggle" aria-expanded="false" aria-controls="fnBody" title="Expand function list">◂</button>
     </div>
     <div id="fnBody">
       <div class="fn-scroll">

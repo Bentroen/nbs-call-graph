@@ -9,18 +9,32 @@ const crossOnlyCb = document.getElementById("crossOnly");
 const darkModeCb = document.getElementById("darkMode");
 const fadeSlider = document.getElementById("fadeIntensity");
 const fadeOut = document.getElementById("fadeIntensityOut");
-const THEME_KEY = "darkMode";
+const PREFS_KEY = "nbsCallGraphPrefs";
+
+function loadPrefs() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+let prefs = loadPrefs();
+
+function savePrefs(patch) {
+  prefs = { ...prefs, ...patch };
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch (e) {}
+}
 
 function systemPrefersDark() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
 function readDarkPreference() {
-  try {
-    const stored = localStorage.getItem(THEME_KEY);
-    if (stored === "true") return true;
-    if (stored === "false") return false;
-  } catch (e) {}
+  if (prefs.darkMode === true || prefs.darkMode === false) return prefs.darkMode;
   return systemPrefersDark();
 }
 
@@ -41,11 +55,7 @@ function labelThemeColors() {
 function applyDarkMode(on, { persist = true } = {}) {
   document.documentElement.classList.toggle("dark", on);
   darkModeCb.checked = on;
-  if (persist) {
-    try {
-      localStorage.setItem(THEME_KEY, String(on));
-    } catch (e) {}
-  }
+  if (persist) savePrefs({ darkMode: on });
   if (network) applyLod();
 }
 
@@ -59,19 +69,20 @@ darkModeCb.addEventListener("change", () => {
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", () => {
-    try {
-      if (localStorage.getItem(THEME_KEY) !== null) return;
-    } catch (e) {
-      return;
-    }
+    if (prefs.darkMode === true || prefs.darkMode === false) return;
     applyDarkMode(systemPrefersDark(), { persist: false });
   });
 
-hudToggle.addEventListener("click", () => {
-  const collapsed = hudEl.classList.toggle("collapsed");
+function setHudCollapsed(collapsed) {
+  hudEl.classList.toggle("collapsed", collapsed);
   hudToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
   hudToggle.title = collapsed ? "Expand panel" : "Collapse panel";
   hudToggle.textContent = collapsed ? "▸" : "▾";
+  savePrefs({ hudCollapsed: collapsed });
+}
+
+hudToggle.addEventListener("click", () => {
+  setHudCollapsed(!hudEl.classList.contains("collapsed"));
 });
 
 function fadeIntensity() {
@@ -87,8 +98,22 @@ function scaleFadedAlpha(alpha, intensity) {
 function syncFadeLabel() {
   fadeOut.value = `${fadeSlider.value}%`;
 }
+
+if (typeof prefs.showInitials === "boolean") {
+  showInitialsCb.checked = prefs.showInitials;
+}
+if (typeof prefs.crossOnly === "boolean") {
+  crossOnlyCb.checked = prefs.crossOnly;
+}
+if (Number.isFinite(prefs.fadeIntensity)) {
+  fadeSlider.value = String(
+    Math.min(100, Math.max(0, Math.round(prefs.fadeIntensity))),
+  );
+}
+
 fadeSlider.addEventListener("input", () => {
   syncFadeLabel();
+  savePrefs({ fadeIntensity: Number(fadeSlider.value) });
   applyLod();
 });
 syncFadeLabel();
@@ -365,8 +390,14 @@ function clearIsolate() {
 }
 
 clearBtn.addEventListener("click", clearIsolate);
-showInitialsCb.addEventListener("change", applyLod);
-crossOnlyCb.addEventListener("change", applyLod);
+showInitialsCb.addEventListener("change", () => {
+  savePrefs({ showInitials: showInitialsCb.checked });
+  applyLod();
+});
+crossOnlyCb.addEventListener("change", () => {
+  savePrefs({ crossOnly: crossOnlyCb.checked });
+  applyLod();
+});
 document.addEventListener("keydown", (ev) => {
   if (ev.key === "Escape") clearIsolate();
 });
@@ -784,19 +815,30 @@ function markActiveRow(id) {
 }
 
 const groupByCommunityCb = document.getElementById("groupByCommunity");
+if (typeof prefs.groupByCommunity === "boolean") {
+  groupByCommunityCb.checked = prefs.groupByCommunity;
+  groupByCommunity = prefs.groupByCommunity;
+}
 groupByCommunityCb.addEventListener("change", () => {
   groupByCommunity = groupByCommunityCb.checked;
+  savePrefs({ groupByCommunity });
   renderFnRows();
   markActiveRow(isolatedId);
 });
 
 const showFnStatsCb = document.getElementById("showFnStats");
+if (typeof prefs.showFnStats === "boolean") {
+  showFnStatsCb.checked = prefs.showFnStats;
+}
 function syncFnStatsMode() {
   const showStats = showFnStatsCb.checked;
   fnPanel.classList.toggle("names-only", !showStats);
   document.body.classList.toggle("fn-names-only", !showStats);
 }
-showFnStatsCb.addEventListener("change", syncFnStatsMode);
+showFnStatsCb.addEventListener("change", () => {
+  savePrefs({ showFnStats: showFnStatsCb.checked });
+  syncFnStatsMode();
+});
 syncFnStatsMode();
 
 fnTable.querySelector("thead").addEventListener("click", (event) => {
@@ -847,7 +889,7 @@ fnTable.tBodies[0].addEventListener("mouseleave", () => {
   clearRowGraphHighlight();
 });
 
-function setFnCollapsed(collapsed) {
+function setFnCollapsed(collapsed, { animate = true } = {}) {
   if (!collapsed) {
     fnPanel.classList.remove("is-tab");
     // Restore the table before the width and opacity transitions start.
@@ -860,6 +902,8 @@ function setFnCollapsed(collapsed) {
     ? "Expand function list"
     : "Collapse function list";
   fnToggle.textContent = collapsed ? "◂" : "▸";
+  if (collapsed && !animate) fnPanel.classList.add("is-tab");
+  savePrefs({ fnCollapsed: collapsed });
   if (!collapsed) {
     // Scroll after layout so the focused row is on screen when reopening.
     requestAnimationFrame(() => scrollActiveRowIntoView(true));
@@ -880,6 +924,10 @@ fnPanel.addEventListener("transitionend", (event) => {
 fnToggle.addEventListener("click", () => {
   setFnCollapsed(!fnPanel.classList.contains("collapsed"));
 });
+
+// Markup starts collapsed; open unless the user previously left them collapsed.
+if (prefs.hudCollapsed !== true) setHudCollapsed(false);
+if (prefs.fnCollapsed !== true) setFnCollapsed(false);
 
 renderFnRows();
 
