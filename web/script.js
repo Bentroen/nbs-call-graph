@@ -672,6 +672,34 @@ fnTable.tBodies[0].addEventListener("click", (event) => {
   setIsolate(tr.dataset.id);
 });
 
+let hoveredRowId = null;
+
+function clearRowGraphHighlight() {
+  if (isolatedId) network.selectNodes([isolatedId], false);
+  else network.unselectAll();
+}
+
+function applyRowGraphHighlight(id) {
+  if (!nodes.get(id)) return;
+  if (isolatedId && !isolatedSet(isolatedId).has(id)) return;
+  // highlightEdges:true ≈ hoverConnectedEdges on real node hover
+  network.selectNodes([id], true);
+}
+
+fnTable.tBodies[0].addEventListener("mouseover", (event) => {
+  const tr = event.target.closest("tr");
+  if (!tr || !tr.dataset.id) return;
+  if (tr.dataset.id === hoveredRowId) return;
+  hoveredRowId = tr.dataset.id;
+  applyRowGraphHighlight(hoveredRowId);
+});
+
+fnTable.tBodies[0].addEventListener("mouseleave", () => {
+  if (!hoveredRowId) return;
+  hoveredRowId = null;
+  clearRowGraphHighlight();
+});
+
 function setFnCollapsed(collapsed) {
   if (!collapsed) {
     fnPanel.classList.remove("is-tab");
