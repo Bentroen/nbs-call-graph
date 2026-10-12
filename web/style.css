@@ -7,7 +7,7 @@ body {
   overflow: hidden;
 }
 :root {
-  --fn-width: clamp(540px, 46vw, 620px);
+  --fn-width: clamp(500px, 38vw, 540px);
   --fn-tab: 40px;
 }
 #graph {
