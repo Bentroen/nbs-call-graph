@@ -737,14 +737,31 @@ function syncSortHeaders() {
 function nameCell(rec) {
   const td = document.createElement("td");
   td.className = "name";
+  const row = document.createElement("div");
+  row.className = "fn-name-row";
+
+  const name = document.createElement("span");
+  name.className = "fn-name";
+  name.textContent = rec.name;
+
   const href = sourceUrl(rec.file, rec.line);
   const link = document.createElement("a");
+  link.className = "fn-source";
   link.href = href;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
   link.title = `${rec.file}:${rec.line}`;
-  link.textContent = rec.name;
-  td.append(link);
+  link.setAttribute("aria-label", `Open source for ${rec.name}`);
+  link.innerHTML =
+    '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">' +
+    '<path fill="currentColor" d="M9.5 1.5H14.5V6.5H13V4.06L7.53 9.53L6.47 8.47L11.94 3H9.5V1.5ZM3 3.5H7V5H4.5V12.5H12V10H13.5V14H3V3.5Z"/>' +
+    "</svg>";
+  link.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  row.append(name, link);
+  td.append(row);
   return td;
 }
 
@@ -857,6 +874,7 @@ fnTable.querySelector("thead").addEventListener("click", (event) => {
 });
 
 fnTable.tBodies[0].addEventListener("click", (event) => {
+  if (event.target.closest("a")) return;
   const tr = event.target.closest("tr");
   if (!tr || !tr.dataset.id) return;
   setIsolate(tr.dataset.id);

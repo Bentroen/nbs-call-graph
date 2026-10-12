@@ -562,12 +562,39 @@ body.fn-collapsed #hud {
   position: relative;
   z-index: 1;
 }
-#fnTable a {
-  color: var(--link);
-  text-decoration: none;
+#fnTable .fn-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
-#fnTable a:hover {
-  text-decoration: underline;
+#fnTable .fn-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#fnTable a.fn-source {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--text-hint);
+  opacity: 0.5;
+  text-decoration: none;
+  border-radius: 3px;
+  line-height: 0;
+  transition: opacity 120ms ease, color 120ms ease;
+}
+#fnTable a.fn-source:hover,
+#fnTable tbody tr:hover a.fn-source {
+  opacity: 1;
+  color: var(--link);
+}
+#fnTable a.fn-source:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--link) 55%, transparent);
+  outline-offset: 1px;
+  opacity: 1;
+  color: var(--link);
 }
 #fnTable tbody tr {
   cursor: pointer;
@@ -627,6 +654,5 @@ body.fn-collapsed #hud {
   }
   #fnTable td.name {
     overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
