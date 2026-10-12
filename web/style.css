@@ -7,9 +7,14 @@ body {
   overflow: hidden;
 }
 :root {
-  --fn-width: clamp(490px, 38vw, 540px);
+  --fn-width-full: clamp(490px, 38vw, 540px);
+  --fn-width-names: clamp(140px, 22vw, 220px);
+  --fn-width: var(--fn-width-full);
   --fn-tab: 40px;
   --fn-inset: 12px;
+}
+body.fn-names-only {
+  --fn-width: var(--fn-width-names);
 }
 #graph {
   position: fixed;
@@ -178,12 +183,41 @@ body.fn-collapsed #graph {
   flex: 0 0 auto;
   white-space: nowrap;
 }
+#fnPanel .fn-options {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 0 0 0 16px;
+  margin-right: auto;
+  min-width: 0;
+}
+#fnPanel.names-only .fn-header {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  padding: 8px;
+}
+#fnPanel.names-only .title {
+  order: 0;
+}
+#fnPanel.names-only #fnToggle {
+  order: 1;
+  margin-left: auto;
+}
+#fnPanel.names-only .fn-options {
+  order: 2;
+  flex-basis: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 2px 0 0;
+  gap: 4px;
+}
 #fnPanel .fn-option {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin: 0 0 0 24px;
-  margin-right: auto;
+  margin: 0;
   padding: 0;
   border: 0;
   font-size: 11px;
@@ -192,7 +226,6 @@ body.fn-collapsed #graph {
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  min-width: 0;
 }
 #fnPanel .fn-option input {
   margin: 0;
@@ -216,7 +249,31 @@ body.fn-collapsed #graph {
 #fnPanel.collapsed .fn-header {
   border-bottom: 0;
 }
-#fnPanel.collapsed .fn-option {
+#fnPanel.collapsed .fn-options {
+  display: none;
+}
+/* names-only header layout must not affect the collapsed tab toggle centering */
+#fnPanel.collapsed.names-only .fn-header {
+  flex-wrap: nowrap;
+  padding: 8px 10px;
+  gap: 8px;
+}
+#fnPanel.collapsed.names-only #fnToggle {
+  order: 0;
+  margin-left: 0;
+}
+#fnPanel.collapsed.is-tab.names-only .fn-header {
+  padding: 10px 4px;
+  gap: 12px;
+}
+#fnPanel.collapsed.is-tab.names-only #fnToggle {
+  order: -1;
+}
+#fnPanel.names-only col.col-num-sm,
+#fnPanel.names-only col.col-num-md,
+#fnPanel.names-only col.col-num-lg,
+#fnPanel.names-only th.num,
+#fnPanel.names-only td.num {
   display: none;
 }
 #fnPanel.collapsed.is-tab .fn-header {
@@ -384,7 +441,8 @@ body.fn-collapsed #graph {
 
 /* Mobile: panel overlays the graph instead of shrinking it. */
 @media (max-width: 800px) {
-  :root {
+  :root,
+  body.fn-names-only {
     --fn-width: calc(100vw - var(--fn-inset) * 2);
   }
   #graph,

@@ -717,6 +717,15 @@ groupByCommunityCb.addEventListener("change", () => {
   markActiveRow(isolatedId);
 });
 
+const showFnStatsCb = document.getElementById("showFnStats");
+function syncFnStatsMode() {
+  const showStats = showFnStatsCb.checked;
+  fnPanel.classList.toggle("names-only", !showStats);
+  document.body.classList.toggle("fn-names-only", !showStats);
+}
+showFnStatsCb.addEventListener("change", syncFnStatsMode);
+syncFnStatsMode();
+
 fnTable.querySelector("thead").addEventListener("click", (event) => {
   const th = event.target.closest("th");
   if (!th || !th.dataset.key) return;
