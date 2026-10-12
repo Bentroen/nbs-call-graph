@@ -274,6 +274,16 @@ body.fn-collapsed #graph {
   text-align: center;
   pointer-events: none;
 }
+#fnTable th[data-key="name"] {
+  padding-right: 6px;
+}
+#fnTable th[data-key="name"]::after {
+  position: static;
+  display: inline-block;
+  transform: none;
+  margin-left: 0.25em;
+  vertical-align: middle;
+}
 #fnTable th[aria-sort="ascending"]::after {
   content: "▲";
 }
