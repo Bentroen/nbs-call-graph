@@ -353,6 +353,8 @@ body.fn-collapsed #graph {
 }
 #fnTable tbody tr {
   cursor: pointer;
+  /* Keep scrollIntoView({block:"nearest"}) clear of the sticky header. */
+  scroll-margin-top: 2.5rem;
 }
 #fnTable tbody tr.community-start td {
   border-top: 2px solid #c8c2b6;
