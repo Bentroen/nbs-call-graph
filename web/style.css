@@ -216,7 +216,7 @@ body.fn-collapsed #hud {
   content: "";
   position: absolute;
   top: 50%;
-  left: 2px;
+  left: 1px;
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -234,7 +234,7 @@ body.fn-collapsed #hud {
   border-color: color-mix(in srgb, var(--link) 45%, var(--btn-border));
 }
 #hud .theme-switch:has(input:checked) .theme-track::after {
-  transform: translate(11px, -50%);
+  transform: translate(12px, -50%);
 }
 #hud .theme-switch:focus-within .theme-track {
   outline: 2px solid color-mix(in srgb, var(--link) 55%, transparent);
