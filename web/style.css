@@ -140,6 +140,71 @@ body.fn-collapsed #hud {
   flex: 0 0 auto;
   vertical-align: middle;
 }
+#hud .theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-hint);
+}
+#hud .theme-switch .theme-side {
+  display: inline-flex;
+  line-height: 0;
+  opacity: 0.45;
+  transition: opacity 160ms ease, color 160ms ease;
+}
+#hud .theme-switch .theme-icon {
+  display: block;
+}
+#hud .theme-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+#hud .theme-switch .theme-track {
+  position: relative;
+  box-sizing: border-box;
+  width: 28px;
+  height: 16px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  transition: background 160ms ease, border-color 160ms ease;
+}
+#hud .theme-switch .theme-track::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text);
+  transform: translateY(-50%);
+  transition: transform 160ms ease;
+}
+#hud .theme-switch:not(:has(input:checked)) .theme-side:first-of-type,
+#hud .theme-switch:has(input:checked) .theme-side:last-of-type {
+  opacity: 1;
+  color: var(--text);
+}
+#hud .theme-switch:has(input:checked) .theme-track {
+  background: color-mix(in srgb, var(--link) 28%, var(--btn-bg));
+  border-color: color-mix(in srgb, var(--link) 45%, var(--btn-border));
+}
+#hud .theme-switch:has(input:checked) .theme-track::after {
+  transform: translate(11px, -50%);
+}
+#hud .theme-switch:focus-within .theme-track {
+  outline: 2px solid color-mix(in srgb, var(--link) 55%, transparent);
+  outline-offset: 1px;
+}
 #hud #hudToggle {
   margin: 0;
   padding: 2px 7px;

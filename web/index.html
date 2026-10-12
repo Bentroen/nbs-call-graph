@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NBS call graph</title>
+  <title>Note Block Studio call graph</title>
   <script>
     (function () {
       try {
@@ -25,9 +25,31 @@
     <div class="hud-header">
       <span class="title">NBS call graph</span>
       <div class="hud-options">
-        <label class="hud-option" for="darkMode">
-          <input type="checkbox" id="darkMode" />
-          Dark mode
+        <label class="theme-switch" for="darkMode" title="Theme">
+          <span class="theme-side" aria-hidden="true">
+            <svg class="theme-icon" viewBox="0 0 16 16" width="12" height="12">
+              <circle cx="8" cy="8" r="3" fill="currentColor" />
+              <g
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linecap="round"
+                fill="none"
+              >
+                <path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6" />
+                <path d="M3.1 3.1l1.1 1.1M11.8 11.8l1.1 1.1M3.1 12.9l1.1-1.1M11.8 4.2l1.1-1.1" />
+              </g>
+            </svg>
+          </span>
+          <input type="checkbox" id="darkMode" role="switch" aria-label="Dark mode" />
+          <span class="theme-track" aria-hidden="true"></span>
+          <span class="theme-side" aria-hidden="true">
+            <svg class="theme-icon" viewBox="0 0 16 16" width="12" height="12">
+              <path
+                fill="currentColor"
+                d="M6.1 1.6a6.4 6.4 0 0 0 8.3 8.3A6.5 6.5 0 1 1 6.1 1.6z"
+              />
+            </svg>
+          </span>
         </label>
       </div>
       <button type="button" id="hudToggle" aria-expanded="false" aria-controls="hudBody" title="Expand panel">▸</button>

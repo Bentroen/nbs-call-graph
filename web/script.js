@@ -34,7 +34,8 @@ function systemPrefersDark() {
 }
 
 function readDarkPreference() {
-  if (prefs.darkMode === true || prefs.darkMode === false) return prefs.darkMode;
+  if (prefs.darkMode === true || prefs.darkMode === false)
+    return prefs.darkMode;
   return systemPrefersDark();
 }
 
