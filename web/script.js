@@ -877,7 +877,8 @@ fnTable.tBodies[0].addEventListener("click", (event) => {
   if (event.target.closest("a")) return;
   const tr = event.target.closest("tr");
   if (!tr || !tr.dataset.id) return;
-  setIsolate(tr.dataset.id);
+  if (tr.dataset.id === isolatedId) clearIsolate();
+  else setIsolate(tr.dataset.id);
 });
 
 let hoveredRowId = null;
