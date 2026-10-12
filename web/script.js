@@ -568,8 +568,8 @@ const fnRecords = DATA.nodes
       lines: tip.lines ?? 0,
       loc: tip.code_lines ?? 0,
       calls: tip.out_degree ?? 0,
-      calledFrom: tip.in_degree ?? 0,
-      calledBy: tip.in_calls ?? 0,
+      callers: tip.in_degree ?? 0,
+      called: tip.in_calls ?? 0,
       color: (n.color && n.color.background) || "#999999",
     };
   });
@@ -631,8 +631,8 @@ function renderFnRows() {
         numCell(rec.lines),
         numCell(rec.loc),
         numCell(rec.calls),
-        numCell(rec.calledFrom),
-        numCell(rec.calledBy),
+        numCell(rec.callers),
+        numCell(rec.called),
       );
       frag.append(tr);
     });
