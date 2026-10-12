@@ -1,8 +1,11 @@
+html {
+  color-scheme: light;
+}
 html,
 body {
   margin: 0;
   height: 100%;
-  background: #f7f5f0;
+  background: var(--page-bg);
   font-family: Helvetica, Arial, sans-serif;
   overflow: hidden;
 }
@@ -12,6 +15,54 @@ body {
   --fn-width: var(--fn-width-full);
   --fn-tab: 40px;
   --fn-inset: 12px;
+  --page-bg: #f7f5f0;
+  --panel-bg: rgba(255, 255, 255, 0.92);
+  --panel-bg-strong: rgba(255, 255, 255, 0.96);
+  --panel-border: #ccc;
+  --panel-shadow: rgba(0, 0, 0, 0.08);
+  --text: #222;
+  --text-muted: #555;
+  --text-hint: #666;
+  --header-border: #e4e4e4;
+  --btn-bg: #fff;
+  --btn-border: #bbb;
+  --th-bg: #f7f5f0;
+  --th-hover: #efece4;
+  --td-border: #eee;
+  --community-rule: #c8c2b6;
+  --row-hover: rgba(0, 0, 0, 0.04);
+  --row-hover-dim: rgba(0, 0, 0, 0.03);
+  --row-active-mix: white;
+  --link: #1a4f8b;
+  --tooltip-shadow: rgba(0, 0, 0, 0.12);
+  --label-fill: #1a1a1a;
+  --label-stroke: #f7f5f0;
+}
+html.dark {
+  color-scheme: dark;
+  /* Blue-tinted dark surfaces (not neutral gray). */
+  --page-bg: #0e1520;
+  --panel-bg: rgba(18, 28, 42, 0.94);
+  --panel-bg-strong: rgba(18, 28, 42, 0.97);
+  --panel-border: #2a3a52;
+  --panel-shadow: rgba(4, 10, 22, 0.45);
+  --text: #e4eaf2;
+  --text-muted: #9aabbf;
+  --text-hint: #7f91a8;
+  --header-border: #24344c;
+  --btn-bg: #152033;
+  --btn-border: #3a4d66;
+  --th-bg: #152033;
+  --th-hover: #1a283c;
+  --td-border: #24344c;
+  --community-rule: #3a4d66;
+  --row-hover: rgba(140, 180, 230, 0.08);
+  --row-hover-dim: rgba(140, 180, 230, 0.05);
+  --row-active-mix: #0e1520;
+  --link: #6db3f2;
+  --tooltip-shadow: rgba(4, 10, 22, 0.55);
+  --label-fill: #e8eef5;
+  --label-stroke: #0e1520;
 }
 body.fn-names-only {
   --fn-width: var(--fn-width-names);
@@ -34,15 +85,15 @@ body.fn-collapsed #graph {
   /* Stay in the graph band so the Functions panel never covers the HUD. */
   right: calc(var(--fn-width) + var(--fn-inset) * 2 + 8px);
   z-index: 5;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid #ccc;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
   border-radius: 8px;
   padding: 10px 12px;
   max-width: 340px;
   font-size: 13px;
   line-height: 1.35;
-  color: #222;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  color: var(--text);
+  box-shadow: 0 2px 10px var(--panel-shadow);
 }
 body.fn-collapsed #hud {
   right: calc(var(--fn-tab) + var(--fn-inset) * 2 + 8px);
@@ -55,8 +106,39 @@ body.fn-collapsed #hud {
 }
 #hud .title {
   font-weight: 700;
-  flex: 1;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+#hud .hud-options {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 0 0 0 16px;
+  margin-right: auto;
   min-width: 0;
+}
+#hud .hud-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.2;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+#hud .hud-option input {
+  margin: 0;
+  padding: 0;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  vertical-align: middle;
 }
 #hud #hudToggle {
   margin: 0;
@@ -64,10 +146,16 @@ body.fn-collapsed #hud {
   font-size: 11px;
   line-height: 1.2;
   cursor: pointer;
-  border: 1px solid #bbb;
+  border: 1px solid var(--btn-border);
   border-radius: 4px;
-  background: #fff;
+  background: var(--btn-bg);
+  color: var(--text);
   flex: 0 0 auto;
+}
+#hud .hud-hint {
+  font-size: 11px;
+  color: var(--text-hint);
+  margin-top: 2px;
 }
 #hudBody {
   display: grid;
@@ -95,9 +183,10 @@ body.fn-collapsed #hud {
   padding: 4px 10px;
   font-size: 12px;
   cursor: pointer;
-  border: 1px solid #bbb;
+  border: 1px solid var(--btn-border);
   border-radius: 4px;
-  background: #fff;
+  background: var(--btn-bg);
+  color: var(--text);
 }
 #hud button:disabled {
   opacity: 0.45;
@@ -128,22 +217,22 @@ body.fn-collapsed #hud {
   pointer-events: none;
   flex-direction: column;
   gap: 2px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid #aaa;
+  background: var(--panel-bg-strong);
+  border: 1px solid var(--panel-border);
   border-radius: 6px;
   padding: 8px 10px;
   width: max-content;
   white-space: nowrap;
   font-size: 12px;
   line-height: 1.4;
-  color: #222;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  color: var(--text);
+  box-shadow: 0 4px 14px var(--tooltip-shadow);
 }
 #tooltip .title {
   font-weight: 700;
 }
 #tooltip .meta {
-  color: #555;
+  color: var(--text-muted);
 }
 #tooltip .stats {
   display: flex;
@@ -161,11 +250,11 @@ body.fn-collapsed #hud {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid #ccc;
+  background: var(--panel-bg-strong);
+  border: 1px solid var(--panel-border);
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  color: #222;
+  box-shadow: 0 2px 10px var(--panel-shadow);
+  color: var(--text);
   font-size: 12px;
   transition: width 200ms ease-in-out;
 }
@@ -177,7 +266,7 @@ body.fn-collapsed #hud {
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  border-bottom: 1px solid #e4e4e4;
+  border-bottom: 1px solid var(--header-border);
   flex: 0 0 auto;
   overflow: hidden;
 }
@@ -246,9 +335,10 @@ body.fn-collapsed #hud {
   font-size: 11px;
   line-height: 1.2;
   cursor: pointer;
-  border: 1px solid #bbb;
+  border: 1px solid var(--btn-border);
   border-radius: 4px;
-  background: #fff;
+  background: var(--btn-bg);
+  color: var(--text);
   flex: 0 0 auto;
 }
 #fnPanel.collapsed .fn-header {
@@ -340,11 +430,11 @@ body.fn-collapsed #hud {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f7f5f0;
+  background: var(--th-bg);
   text-align: left;
   font-weight: 600;
   padding: 6px 0.95em 6px 6px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--panel-border);
   cursor: pointer;
   user-select: none;
   white-space: normal;
@@ -352,7 +442,7 @@ body.fn-collapsed #hud {
   overflow-wrap: anywhere;
 }
 #fnTable th:hover {
-  background: #efece4;
+  background: var(--th-hover);
 }
 #fnTable th::after {
   content: "";
@@ -394,7 +484,7 @@ body.fn-collapsed #hud {
 }
 #fnTable td {
   padding: 4px 8px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--td-border);
   vertical-align: top;
 }
 #fnTable td.num {
@@ -409,7 +499,7 @@ body.fn-collapsed #hud {
   z-index: 1;
 }
 #fnTable a {
-  color: #1a4f8b;
+  color: var(--link);
   text-decoration: none;
 }
 #fnTable a:hover {
@@ -421,10 +511,10 @@ body.fn-collapsed #hud {
   scroll-margin-top: 2.5rem;
 }
 #fnTable tbody tr.community-start td {
-  border-top: 2px solid #c8c2b6;
+  border-top: 2px solid var(--community-rule);
 }
 #fnTable tbody tr:hover td {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--row-hover);
 }
 #fnTable tbody tr.dimmed td {
   opacity: 0.32;
@@ -432,16 +522,16 @@ body.fn-collapsed #hud {
 }
 #fnTable tbody tr.dimmed:hover td {
   opacity: 0.5;
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--row-hover-dim);
 }
 #fnTable tbody tr.active td {
-  background: color-mix(in srgb, var(--group, #4e79a7) 42%, white);
+  background: color-mix(in srgb, var(--group, #4e79a7) 42%, var(--row-active-mix));
 }
 #fnTable tbody tr.active td.name {
   font-weight: 600;
 }
 #fnTable tbody tr.active:hover td {
-  background: color-mix(in srgb, var(--group, #4e79a7) 50%, white);
+  background: color-mix(in srgb, var(--group, #4e79a7) 50%, var(--row-active-mix));
 }
 
 /* Mobile: panel overlays the graph instead of shrinking it. */

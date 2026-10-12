@@ -6,8 +6,66 @@ const hudToggle = document.getElementById("hudToggle");
 const clearBtn = document.getElementById("clearIsolate");
 const showInitialsCb = document.getElementById("showInitials");
 const crossOnlyCb = document.getElementById("crossOnly");
+const darkModeCb = document.getElementById("darkMode");
 const fadeSlider = document.getElementById("fadeIntensity");
 const fadeOut = document.getElementById("fadeIntensityOut");
+const THEME_KEY = "darkMode";
+
+function systemPrefersDark() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function readDarkPreference() {
+  try {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === "true") return true;
+    if (stored === "false") return false;
+  } catch (e) {}
+  return systemPrefersDark();
+}
+
+function cssThemeColor(name, fallback) {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value || fallback;
+}
+
+function labelThemeColors() {
+  return {
+    fill: cssThemeColor("--label-fill", "#1a1a1a"),
+    stroke: cssThemeColor("--label-stroke", "#f7f5f0"),
+  };
+}
+
+function applyDarkMode(on, { persist = true } = {}) {
+  document.documentElement.classList.toggle("dark", on);
+  darkModeCb.checked = on;
+  if (persist) {
+    try {
+      localStorage.setItem(THEME_KEY, String(on));
+    } catch (e) {}
+  }
+  if (network) applyLod();
+}
+
+darkModeCb.checked = readDarkPreference();
+document.documentElement.classList.toggle("dark", darkModeCb.checked);
+
+darkModeCb.addEventListener("change", () => {
+  applyDarkMode(darkModeCb.checked);
+});
+
+window
+  .matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", () => {
+    try {
+      if (localStorage.getItem(THEME_KEY) !== null) return;
+    } catch (e) {
+      return;
+    }
+    applyDarkMode(systemPrefersDark(), { persist: false });
+  });
 
 hudToggle.addEventListener("click", () => {
   const collapsed = hudEl.classList.toggle("collapsed");
@@ -216,7 +274,11 @@ network = new vis.Network(
       shape: "custom",
       ctxRenderer: renderNode,
       scaling: { min: 6, max: 150 },
-      font: { color: "#1a1a1a", strokeWidth: 3, strokeColor: "#f7f5f0" },
+      font: {
+        color: labelThemeColors().fill,
+        strokeWidth: 3,
+        strokeColor: labelThemeColors().stroke,
+      },
     },
     edges: {
       selectionWidth: 2,
@@ -338,6 +400,7 @@ function applyLod() {
 
   const nodeAlpha = {};
   const nodeUpdates = [];
+  const labelColors = labelThemeColors();
   nodes.forEach((n) => {
     const inIsolate = !keepSet || keepSet.has(n.id);
     const isCenter = isolatedId && n.id === isolatedId;
@@ -385,9 +448,12 @@ function applyLod() {
       // Color/stroke only — font size is computed from importance in renderNode.
       font: {
         face: "Helvetica",
-        color: hexToRgba("#1a1a1a", labelText ? Math.min(1, alpha + 0.25) : 0),
+        color: hexToRgba(
+          labelColors.fill,
+          labelText ? Math.min(1, alpha + 0.25) : 0,
+        ),
         strokeWidth: labelText ? (showFull ? 3 : 2) : 0,
-        strokeColor: "#f7f5f0",
+        strokeColor: labelColors.stroke,
       },
     });
   });
