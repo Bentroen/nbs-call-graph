@@ -9,17 +9,18 @@ body {
 :root {
   --fn-width: clamp(490px, 38vw, 540px);
   --fn-tab: 40px;
+  --fn-inset: 12px;
 }
 #graph {
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
-  right: var(--fn-width);
+  right: calc(var(--fn-width) + var(--fn-inset) * 2);
   transition: right 200ms ease-in-out;
 }
 body.fn-collapsed #graph {
-  right: var(--fn-tab);
+  right: calc(var(--fn-tab) + var(--fn-inset) * 2);
 }
 #hud {
   position: fixed;
@@ -142,18 +143,18 @@ body.fn-collapsed #graph {
 }
 #fnPanel {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: var(--fn-inset);
+  right: var(--fn-inset);
+  bottom: var(--fn-inset);
   z-index: 6;
   width: var(--fn-width);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.96);
-  border-left: 1px solid #ccc;
-  border-radius: 8px 0 0 8px;
-  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   color: #222;
   font-size: 12px;
   transition: width 200ms ease-in-out;
