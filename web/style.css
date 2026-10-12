@@ -29,8 +29,10 @@ body.fn-collapsed #graph {
 }
 #hud {
   position: fixed;
-  left: 12px;
-  top: 12px;
+  left: var(--fn-inset);
+  top: var(--fn-inset);
+  /* Stay in the graph band so the Functions panel never covers the HUD. */
+  right: calc(var(--fn-width) + var(--fn-inset) * 2 + 8px);
   z-index: 5;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid #ccc;
@@ -41,6 +43,9 @@ body.fn-collapsed #graph {
   line-height: 1.35;
   color: #222;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+body.fn-collapsed #hud {
+  right: calc(var(--fn-tab) + var(--fn-inset) * 2 + 8px);
 }
 #hud .hud-header {
   display: flex;
@@ -449,11 +454,10 @@ body.fn-collapsed #graph {
   body.fn-collapsed #graph {
     right: 0;
   }
-  /* Keep the HUD clear of the floating Functions tab + page insets. */
-  #hud {
-    left: var(--fn-inset);
-    right: calc(var(--fn-tab) + var(--fn-inset) + 8px);
-    max-width: 340px;
+  /* Graph is full-bleed; only reserve the floating tab (panel overlays when open). */
+  #hud,
+  body.fn-collapsed #hud {
+    right: calc(var(--fn-tab) + var(--fn-inset) * 2 + 8px);
   }
   #fnPanel .fn-scroll {
     overflow-x: auto;
