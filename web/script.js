@@ -360,7 +360,10 @@ function applyLod() {
     const labelText = showFull ? n._label : showInitials ? n._initials : "";
     const bg = hexToRgba(n._bg, alpha);
     // Don't keep a residual outline when the fade slider zeros a node out.
-    const border = hexToRgba(n._border, visible ? Math.min(1, alpha + 0.15) : 0);
+    const border = hexToRgba(
+      n._border,
+      visible ? Math.min(1, alpha + 0.15) : 0,
+    );
     nodeUpdates.push({
       id: n.id,
       label: labelText,
@@ -668,7 +671,11 @@ function renderFnRows() {
       tr.dataset.community = String(rec.community);
       tr.style.setProperty("--group", rec.color);
       if (rec.id === isolatedId) tr.classList.add("active");
-      if (groupByCommunity && prevCommunity !== null && rec.community !== prevCommunity) {
+      if (
+        groupByCommunity &&
+        prevCommunity !== null &&
+        rec.community !== prevCommunity
+      ) {
         tr.classList.add("community-start");
       }
       prevCommunity = rec.community;

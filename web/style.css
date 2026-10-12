@@ -449,6 +449,12 @@ body.fn-collapsed #graph {
   body.fn-collapsed #graph {
     right: 0;
   }
+  /* Keep the HUD clear of the floating Functions tab + page insets. */
+  #hud {
+    left: var(--fn-inset);
+    right: calc(var(--fn-tab) + var(--fn-inset) + 8px);
+    max-width: 340px;
+  }
   #fnPanel .fn-scroll {
     overflow-x: auto;
     overflow-y: auto;
