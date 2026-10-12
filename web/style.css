@@ -114,8 +114,7 @@ body.fn-collapsed #hud {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 14px;
-  margin: 0 0 0 16px;
-  margin-right: auto;
+  margin: 0 8px 0 auto;
   min-width: 0;
 }
 #hud .hud-option {
