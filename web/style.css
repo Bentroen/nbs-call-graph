@@ -152,6 +152,7 @@ body.fn-collapsed #graph {
   overflow: hidden;
   background: rgba(255, 255, 255, 0.96);
   border-left: 1px solid #ccc;
+  border-radius: 8px 0 0 8px;
   box-shadow: -2px 0 12px rgba(0, 0, 0, 0.06);
   color: #222;
   font-size: 12px;
