@@ -7,7 +7,7 @@ body {
   overflow: hidden;
 }
 :root {
-  --fn-width: clamp(500px, 38vw, 540px);
+  --fn-width: clamp(490px, 38vw, 540px);
   --fn-tab: 40px;
 }
 #graph {
@@ -247,7 +247,7 @@ body.fn-collapsed #graph {
 #fnTable th {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
   background: #f7f5f0;
   text-align: left;
   font-weight: 600;
@@ -301,7 +301,10 @@ body.fn-collapsed #graph {
 }
 #fnTable td.name {
   box-shadow: inset 4px 0 0 var(--group, #ccc);
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
 }
 #fnTable a {
   color: #1a4f8b;
