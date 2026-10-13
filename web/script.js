@@ -909,45 +909,215 @@ fnTable.tBodies[0].addEventListener("mouseleave", () => {
   clearRowGraphHighlight();
 });
 
-function setFnCollapsed(collapsed, { animate = true } = {}) {
-  if (!collapsed) {
-    fnPanel.classList.remove("is-tab");
-    // Restore the table before the width and opacity transitions start.
-    void fnPanel.offsetWidth;
-  }
-  fnPanel.classList.toggle("collapsed", collapsed);
+const fnMobileQuery = window.matchMedia("(max-width: 800px)");
+const FN_MOTION_MS = 200;
+let fnCollapsed = fnPanel.classList.contains("collapsed");
+let fnMotionToken = 0;
+
+function syncFnChrome(collapsed) {
   document.body.classList.toggle("fn-collapsed", collapsed);
   fnToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
-  fnToggle.title = collapsed
-    ? "Expand function list"
-    : "Collapse function list";
+  fnToggle.title = collapsed ? "Expand function list" : "Collapse function list";
   fnToggle.textContent = collapsed ? "◂" : "▸";
-  if (collapsed && !animate) fnPanel.classList.add("is-tab");
   savePrefs({ fnCollapsed: collapsed });
-  if (!collapsed) {
-    // Scroll after layout so the focused row is on screen when reopening.
-    requestAnimationFrame(() => scrollActiveRowIntoView(true));
-  }
 }
 
-fnPanel.addEventListener("transitionend", (event) => {
-  if (event.target !== fnPanel || event.propertyName !== "width") return;
-  fnPanel.classList.toggle("is-tab", fnPanel.classList.contains("collapsed"));
+function panelFrameY() {
+  const style = getComputedStyle(fnPanel);
+  return (
+    parseFloat(style.paddingTop) +
+    parseFloat(style.paddingBottom) +
+    parseFloat(style.borderTopWidth) +
+    parseFloat(style.borderBottomWidth)
+  );
+}
+
+function cssHeightForBorderBox(borderBox) {
+  return Math.max(0, borderBox - panelFrameY());
+}
+
+function fullPanelBorderBox() {
+  const inset =
+    parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue("--fn-inset"),
+    ) || 12;
+  return window.innerHeight - inset * 2;
+}
+
+function quietStyle(apply) {
+  fnPanel.style.transition = "none";
+  apply();
+  void fnPanel.offsetHeight;
+  fnPanel.style.transition = "";
+}
+
+// Pin a border-box height without animating, so the next change has a stable start.
+function pinFnHeight(borderBox) {
+  quietStyle(() => {
+    fnPanel.classList.add("fn-height-lock");
+    fnPanel.style.height = `${cssHeightForBorderBox(borderBox)}px`;
+  });
+}
+
+function animateFnHeight(borderBox) {
+  fnPanel.classList.add("fn-height-lock");
+  fnPanel.style.height = `${cssHeightForBorderBox(borderBox)}px`;
+}
+
+function releaseFnHeight() {
+  quietStyle(() => {
+    fnPanel.classList.remove("fn-height-lock");
+    fnPanel.style.height = "";
+  });
+}
+
+function contentTabBorderBox() {
+  const locked = fnPanel.style.height;
+  let measured = 0;
+  quietStyle(() => {
+    fnPanel.classList.add("fn-height-lock");
+    fnPanel.style.height = "max-content";
+    measured = fnPanel.getBoundingClientRect().height;
+    fnPanel.style.height = locked;
+  });
+  return measured;
+}
+
+function whenFnTransition(prop, token, callback) {
+  let settled = false;
+  const finish = () => {
+    if (settled) return;
+    settled = true;
+    fnPanel.removeEventListener("transitionend", onEnd);
+    window.clearTimeout(timer);
+    if (token !== fnMotionToken) return;
+    callback();
+  };
+  const onEnd = (event) => {
+    if (event.target !== fnPanel || event.propertyName !== prop) return;
+    finish();
+  };
+  const timer = window.setTimeout(finish, FN_MOTION_MS + 120);
+  fnPanel.addEventListener("transitionend", onEnd);
+}
+
+function settleGraphAfterPanel() {
   // Final size + redraw after the sidebar animation; setSize alone can leave a blank canvas.
   graphPixels = "";
   syncGraphSize();
-  if (!fnPanel.classList.contains("collapsed")) {
+}
+
+function widenFnPanel(token) {
+  fnPanel.classList.remove("is-tab");
+  // Restore the table before the width and opacity transitions start.
+  void fnPanel.offsetWidth;
+  fnPanel.classList.remove("collapsed");
+  whenFnTransition("width", token, () => {
+    if (fnCollapsed) return;
+    releaseFnHeight();
+    settleGraphAfterPanel();
     scrollActiveRowIntoView(true);
+  });
+  requestAnimationFrame(() => scrollActiveRowIntoView(true));
+}
+
+function growFnTabHeight(token) {
+  pinFnHeight(fnPanel.getBoundingClientRect().height);
+  requestAnimationFrame(() => {
+    if (token !== fnMotionToken || fnCollapsed) return;
+    animateFnHeight(fullPanelBorderBox());
+    whenFnTransition("height", token, () => {
+      if (fnCollapsed) return;
+      widenFnPanel(token);
+    });
+  });
+}
+
+function shrinkFnTabHeight(token) {
+  // Lock the tall bar before is-tab hides #fnBody (display:none would snap height).
+  pinFnHeight(fnPanel.getBoundingClientRect().height);
+  fnPanel.classList.add("is-tab");
+  const target = contentTabBorderBox();
+  pinFnHeight(fnPanel.getBoundingClientRect().height);
+  requestAnimationFrame(() => {
+    if (token !== fnMotionToken || !fnCollapsed) return;
+    animateFnHeight(target);
+    whenFnTransition("height", token, () => {
+      if (!fnCollapsed) return;
+      releaseFnHeight();
+      settleGraphAfterPanel();
+    });
+  });
+}
+
+function setFnCollapsed(collapsed, { animate = true } = {}) {
+  fnMotionToken += 1;
+  const token = fnMotionToken;
+  fnCollapsed = collapsed;
+  syncFnChrome(collapsed);
+
+  if (!animate) {
+    releaseFnHeight();
+    fnPanel.classList.toggle("collapsed", collapsed);
+    fnPanel.classList.toggle("is-tab", collapsed);
+    if (!collapsed) requestAnimationFrame(() => scrollActiveRowIntoView(true));
+    return;
   }
-});
+
+  if (!collapsed) {
+    // Mobile tab: grow to the full column, then widen to the left.
+    if (
+      fnMobileQuery.matches &&
+      fnPanel.classList.contains("collapsed") &&
+      fnPanel.classList.contains("is-tab")
+    ) {
+      growFnTabHeight(token);
+      return;
+    }
+    widenFnPanel(token);
+    return;
+  }
+
+  // Already a short tab (reversed mid height-grow): only the height needs to come back down.
+  if (fnMobileQuery.matches && fnPanel.classList.contains("is-tab")) {
+    fnPanel.classList.add("collapsed");
+    shrinkFnTabHeight(token);
+    return;
+  }
+
+  fnPanel.classList.add("collapsed");
+  whenFnTransition("width", token, () => {
+    if (!fnCollapsed) return;
+    if (fnMobileQuery.matches) {
+      shrinkFnTabHeight(token);
+      return;
+    }
+    fnPanel.classList.add("is-tab");
+    settleGraphAfterPanel();
+  });
+}
+
+function onFnBreakpointChange() {
+  fnMotionToken += 1;
+  releaseFnHeight();
+  fnPanel.classList.toggle("collapsed", fnCollapsed);
+  fnPanel.classList.toggle("is-tab", fnCollapsed);
+  document.body.classList.toggle("fn-collapsed", fnCollapsed);
+  settleGraphAfterPanel();
+}
+if (typeof fnMobileQuery.addEventListener === "function") {
+  fnMobileQuery.addEventListener("change", onFnBreakpointChange);
+} else if (typeof fnMobileQuery.addListener === "function") {
+  fnMobileQuery.addListener(onFnBreakpointChange);
+}
 
 fnToggle.addEventListener("click", () => {
-  setFnCollapsed(!fnPanel.classList.contains("collapsed"));
+  setFnCollapsed(!fnCollapsed);
 });
 
 // Markup starts collapsed; open unless the user previously left them collapsed.
 if (prefs.hudCollapsed !== true) setHudCollapsed(false);
-if (prefs.fnCollapsed !== true) setFnCollapsed(false);
+if (prefs.fnCollapsed !== true) setFnCollapsed(false, { animate: false });
 
 renderFnRows();
 

@@ -421,7 +421,13 @@ body.fn-collapsed #hud {
   box-shadow: 0 2px 10px var(--panel-shadow);
   color: var(--text);
   font-size: 12px;
-  transition: width 200ms ease-in-out;
+  transition:
+    width 200ms ease-in-out,
+    height 200ms ease-in-out;
+}
+/* Inline height must win over top/bottom while the bar grows or shrinks. */
+#fnPanel.fn-height-lock {
+  bottom: auto;
 }
 #fnPanel.collapsed {
   width: var(--fn-tab);
@@ -765,5 +771,14 @@ body.fn-collapsed #hud {
   }
   #fnTable td.name {
     overflow: hidden;
+  }
+  /* Collapsed tab hugs the vertical label so it stays above the zoom controls.
+     Opening grows that bar to full height, then widens it to the left. */
+  #fnPanel.collapsed.is-tab {
+    bottom: auto;
+    height: max-content;
+  }
+  #fnPanel.collapsed.is-tab .fn-header {
+    flex: 0 0 auto;
   }
 }
