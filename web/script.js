@@ -915,11 +915,22 @@ let fnCollapsed = fnPanel.classList.contains("collapsed");
 let fnMotionToken = 0;
 
 function syncFnChrome(collapsed) {
-  document.body.classList.toggle("fn-collapsed", collapsed);
   fnToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
   fnToggle.title = collapsed ? "Expand function list" : "Collapse function list";
   fnToggle.textContent = collapsed ? "◂" : "▸";
   savePrefs({ fnCollapsed: collapsed });
+}
+
+/* fn-collapsed: reserve tab/panel column. fn-short: full-bleed graph under the floating tab. */
+function setFnBodyLayout({ collapsed, short }) {
+  document.body.classList.toggle("fn-collapsed", collapsed);
+  document.body.classList.toggle("fn-short", short);
+}
+
+/* open-height → open-width (ease-in then ease-out); close-width → close-height (same). */
+function setFnMotion(phase) {
+  if (phase) document.body.dataset.fnMotion = phase;
+  else delete document.body.dataset.fnMotion;
 }
 
 function panelFrameY() {
@@ -1008,12 +1019,16 @@ function settleGraphAfterPanel() {
 }
 
 function widenFnPanel(token) {
+  setFnMotion("open-width");
   fnPanel.classList.remove("is-tab");
   // Restore the table before the width and opacity transitions start.
   void fnPanel.offsetWidth;
   fnPanel.classList.remove("collapsed");
+  // Width phase: hand the sidebar band to the open panel.
+  setFnBodyLayout({ collapsed: false, short: false });
   whenFnTransition("width", token, () => {
     if (fnCollapsed) return;
+    setFnMotion("");
     releaseFnHeight();
     settleGraphAfterPanel();
     scrollActiveRowIntoView(true);
@@ -1022,6 +1037,9 @@ function widenFnPanel(token) {
 }
 
 function growFnTabHeight(token) {
+  setFnMotion("open-height");
+  // Height phase: graph slides in for the tall rail as the tab grows.
+  setFnBodyLayout({ collapsed: true, short: false });
   pinFnHeight(fnPanel.getBoundingClientRect().height);
   requestAnimationFrame(() => {
     if (token !== fnMotionToken || fnCollapsed) return;
@@ -1034,16 +1052,20 @@ function growFnTabHeight(token) {
 }
 
 function shrinkFnTabHeight(token) {
+  setFnMotion("close-height");
   // Lock the tall bar before is-tab hides #fnBody (display:none would snap height).
   pinFnHeight(fnPanel.getBoundingClientRect().height);
   fnPanel.classList.add("is-tab");
   const target = contentTabBorderBox();
   pinFnHeight(fnPanel.getBoundingClientRect().height);
+  // Height phase: graph returns to full-bleed as the rail shrinks to a tab.
+  setFnBodyLayout({ collapsed: true, short: true });
   requestAnimationFrame(() => {
     if (token !== fnMotionToken || !fnCollapsed) return;
     animateFnHeight(target);
     whenFnTransition("height", token, () => {
       if (!fnCollapsed) return;
+      setFnMotion("");
       releaseFnHeight();
       settleGraphAfterPanel();
     });
@@ -1057,17 +1079,18 @@ function setFnCollapsed(collapsed, { animate = true } = {}) {
   syncFnChrome(collapsed);
 
   if (!animate) {
+    setFnMotion("");
     releaseFnHeight();
     fnPanel.classList.toggle("collapsed", collapsed);
     fnPanel.classList.toggle("is-tab", collapsed);
+    setFnBodyLayout({ collapsed, short: collapsed });
     if (!collapsed) requestAnimationFrame(() => scrollActiveRowIntoView(true));
     return;
   }
 
   if (!collapsed) {
-    // Mobile tab: grow to the full column, then widen to the left.
+    // Short tab: grow to the full column, then widen to the left.
     if (
-      fnMobileQuery.matches &&
       fnPanel.classList.contains("collapsed") &&
       fnPanel.classList.contains("is-tab")
     ) {
@@ -1079,30 +1102,32 @@ function setFnCollapsed(collapsed, { animate = true } = {}) {
   }
 
   // Already a short tab (reversed mid height-grow): only the height needs to come back down.
-  if (fnMobileQuery.matches && fnPanel.classList.contains("is-tab")) {
+  if (fnPanel.classList.contains("is-tab")) {
     fnPanel.classList.add("collapsed");
     shrinkFnTabHeight(token);
     return;
   }
 
+  // Width phase first: keep the tall-rail inset until height shrink starts.
+  setFnMotion("close-width");
   fnPanel.classList.add("collapsed");
+  setFnBodyLayout({ collapsed: true, short: false });
   whenFnTransition("width", token, () => {
     if (!fnCollapsed) return;
-    if (fnMobileQuery.matches) {
-      shrinkFnTabHeight(token);
-      return;
-    }
-    fnPanel.classList.add("is-tab");
-    settleGraphAfterPanel();
+    shrinkFnTabHeight(token);
   });
 }
 
 function onFnBreakpointChange() {
   fnMotionToken += 1;
+  setFnMotion("");
   releaseFnHeight();
   fnPanel.classList.toggle("collapsed", fnCollapsed);
   fnPanel.classList.toggle("is-tab", fnCollapsed);
-  document.body.classList.toggle("fn-collapsed", fnCollapsed);
+  setFnBodyLayout({
+    collapsed: fnCollapsed,
+    short: fnCollapsed && fnPanel.classList.contains("is-tab"),
+  });
   settleGraphAfterPanel();
 }
 if (typeof fnMobileQuery.addEventListener === "function") {

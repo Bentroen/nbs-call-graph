@@ -15,6 +15,10 @@ body {
   --fn-width: var(--fn-width-full);
   --fn-tab: 40px;
   --fn-inset: 12px;
+  --fn-motion: 200ms;
+  /* Split ease-in-out across the two panel phases so the seam stays at speed. */
+  --fn-ease-start: cubic-bezier(0.42, 0, 1, 1);
+  --fn-ease-end: cubic-bezier(0, 0, 0.58, 1);
   --page-bg: #f7f5f0;
   --panel-bg: rgba(255, 255, 255, 0.92);
   --panel-bg-strong: rgba(255, 255, 255, 0.96);
@@ -73,10 +77,15 @@ body.fn-names-only {
   left: 0;
   bottom: 0;
   right: calc(var(--fn-width) + var(--fn-inset) * 2);
-  transition: right 200ms ease-in-out;
+  transition: right var(--fn-motion) ease-in-out;
 }
+/* Tall collapsed rail: reserve the tab strip. */
 body.fn-collapsed #graph {
   right: calc(var(--fn-tab) + var(--fn-inset) * 2);
+}
+/* Short floating tab: graph is full-bleed (tab overlays the corner). */
+body.fn-collapsed.fn-short #graph {
+  right: 0;
 }
 #hud {
   position: fixed;
@@ -94,9 +103,23 @@ body.fn-collapsed #graph {
   line-height: 1.35;
   color: var(--text);
   box-shadow: 0 2px 10px var(--panel-shadow);
+  transition: right var(--fn-motion) ease-in-out;
 }
 body.fn-collapsed #hud {
   right: calc(var(--fn-tab) + var(--fn-inset) * 2 + 8px);
+}
+/* Panel open/close is two phases; ease only the start or end of the whole motion. */
+body[data-fn-motion="open-height"] #graph,
+body[data-fn-motion="open-height"] #hud,
+body[data-fn-motion="close-width"] #graph,
+body[data-fn-motion="close-width"] #hud {
+  transition: right var(--fn-motion) var(--fn-ease-start);
+}
+body[data-fn-motion="open-width"] #graph,
+body[data-fn-motion="open-width"] #hud,
+body[data-fn-motion="close-height"] #graph,
+body[data-fn-motion="close-height"] #hud {
+  transition: right var(--fn-motion) var(--fn-ease-end);
 }
 #hud .hud-header {
   display: flex;
@@ -422,8 +445,28 @@ body.fn-collapsed #hud {
   color: var(--text);
   font-size: 12px;
   transition:
-    width 200ms ease-in-out,
-    height 200ms ease-in-out;
+    width var(--fn-motion) ease-in-out,
+    height var(--fn-motion) ease-in-out;
+}
+body[data-fn-motion="open-height"] #fnPanel {
+  transition:
+    width var(--fn-motion) var(--fn-ease-start),
+    height var(--fn-motion) var(--fn-ease-start);
+}
+body[data-fn-motion="open-width"] #fnPanel {
+  transition:
+    width var(--fn-motion) var(--fn-ease-end),
+    height var(--fn-motion) var(--fn-ease-end);
+}
+body[data-fn-motion="close-width"] #fnPanel {
+  transition:
+    width var(--fn-motion) var(--fn-ease-start),
+    height var(--fn-motion) var(--fn-ease-start);
+}
+body[data-fn-motion="close-height"] #fnPanel {
+  transition:
+    width var(--fn-motion) var(--fn-ease-end),
+    height var(--fn-motion) var(--fn-ease-end);
 }
 /* Inline height must win over top/bottom while the bar grows or shrinks. */
 #fnPanel.fn-height-lock {
@@ -431,6 +474,11 @@ body.fn-collapsed #hud {
 }
 #fnPanel.collapsed {
   width: var(--fn-tab);
+}
+/* Collapsed tab hugs the vertical label. Opening grows to full height, then left. */
+#fnPanel.collapsed.is-tab {
+  bottom: auto;
+  height: max-content;
 }
 #fnPanel .fn-header {
   display: flex;
@@ -543,7 +591,7 @@ body.fn-collapsed #hud {
   display: none;
 }
 #fnPanel.collapsed.is-tab .fn-header {
-  flex: 1;
+  flex: 0 0 auto;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
@@ -567,7 +615,13 @@ body.fn-collapsed #hud {
   display: flex;
   flex-direction: column;
   opacity: 1;
-  transition: opacity 200ms ease-in-out;
+  transition: opacity var(--fn-motion) ease-in-out;
+}
+body[data-fn-motion="open-width"] #fnBody {
+  transition: opacity var(--fn-motion) var(--fn-ease-end);
+}
+body[data-fn-motion="close-width"] #fnBody {
+  transition: opacity var(--fn-motion) var(--fn-ease-start);
 }
 #fnPanel.collapsed #fnBody {
   opacity: 0;
@@ -742,17 +796,23 @@ body.fn-collapsed #hud {
   );
 }
 
-/* Mobile: panel overlays the graph instead of shrinking it. */
+/* Mobile: open panel overlays the graph instead of shrinking it. */
 @media (max-width: 800px) {
   :root,
   body.fn-names-only {
     --fn-width: calc(100vw - var(--fn-inset) * 2);
   }
-  #graph,
-  body.fn-collapsed #graph {
+  /* Open = overlay; short tab = full-bleed; tall rail still insets the tab strip. */
+  #graph {
     right: 0;
   }
-  /* Graph is full-bleed; only reserve the floating tab (panel overlays when open). */
+  body.fn-collapsed #graph {
+    right: calc(var(--fn-tab) + var(--fn-inset) * 2);
+  }
+  body.fn-collapsed.fn-short #graph {
+    right: 0;
+  }
+  /* Keep HUD clear of the floating tab whether short or tall. */
   #hud,
   body.fn-collapsed #hud {
     right: calc(var(--fn-tab) + var(--fn-inset) * 2 + 8px);
@@ -771,14 +831,5 @@ body.fn-collapsed #hud {
   }
   #fnTable td.name {
     overflow: hidden;
-  }
-  /* Collapsed tab hugs the vertical label so it stays above the zoom controls.
-     Opening grows that bar to full height, then widens it to the left. */
-  #fnPanel.collapsed.is-tab {
-    bottom: auto;
-    height: max-content;
-  }
-  #fnPanel.collapsed.is-tab .fn-header {
-    flex: 0 0 auto;
   }
 }
