@@ -326,6 +326,13 @@ body[data-fn-motion="close-height"] #hud {
 #hud .hud-section p {
   margin: 0;
 }
+#hud .hud-section a {
+  color: var(--link);
+  text-decoration: none;
+}
+#hud .hud-section a:hover {
+  text-decoration: underline;
+}
 #hud .hud-section-title {
   margin: 0 0 4px;
   padding: 0;
